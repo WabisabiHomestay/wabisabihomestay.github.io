@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wabisabi Homestay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&display=swap">
+<style>
+/* Layout: a reception "room rack" — sticky top bar + tabs, then apartments × days timeline as the main surface; finance = statement beside 12-month chart, then per-apartment table. */
+:root {
+  --bg: #F2F5F3; --surface: #FFFFFF; --surface-2: #F7FAF8; --ink: #13211E; --ink-2: #475753; --muted: #75847F;
+  --line: #D9E1DD; --line-2: #E9EEEB; --axis: #BFC9C4; --grid: #E4EAE7;
+  --accent: #0C6A61; --accent-ink: #FFFFFF; --accent-soft: #DCEFEA;
+  --weekend: #F0F4F1; --today-wash: #E3F2EE;
+  --st-hold: #F5C531; --st-hold-2: #F9DA75; --st-hold-ink: #3A2E00;
+  --st-deposit: #F28A2B; --st-deposit-ink: #2C1400;
+  --st-paid: #D6393B; --st-paid-ink: #FFFFFF;
+  --st-owner: #8452DE; --st-owner-ink: #FFFFFF;
+  --pos: #0B7A3B; --neg: #C2302F;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --scrim: rgba(8, 18, 16, .45);
+  --shadow: 0 1px 2px rgba(19,33,30,.06), 0 12px 32px rgba(19,33,30,.14);
+  --f-display: "Bricolage Grotesque", "Be Vietnam Pro", system-ui, sans-serif;
+  --f-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 10px; --namew: 196px; --dayw: 38px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1412; --surface: #141D1B; --surface-2: #19241F; --ink: #E3ECE8; --ink-2: #A7B6B1; --muted: #7E8E89;
+    --line: #27332F; --line-2: #1E2926; --axis: #3A4844; --grid: #222E2A;
+    --accent: #4DB6A8; --accent-ink: #052420; --accent-soft: #163933;
+    --weekend: #17211E; --today-wash: #173430;
+    --st-hold: #E2B62C; --st-hold-2: #C99E1C; --st-hold-ink: #241C00;
+    --st-deposit: #E7812A; --st-deposit-ink: #200E00;
+    --st-paid: #E04B4B; --st-paid-ink: #FFFFFF;
+    --st-owner: #9466EC; --st-owner-ink: #FFFFFF;
+    --pos: #3CC37A; --neg: #F06A68;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --scrim: rgba(0,0,0,.6);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1412; --surface: #141D1B; --surface-2: #19241F; --ink: #E3ECE8; --ink-2: #A7B6B1; --muted: #7E8E89;
+  --line: #27332F; --line-2: #1E2926; --axis: #3A4844; --grid: #222E2A;
+  --accent: #4DB6A8; --accent-ink: #052420; --accent-soft: #163933;
+  --weekend: #17211E; --today-wash: #173430;
+  --st-hold: #E2B62C; --st-hold-2: #C99E1C; --st-hold-ink: #241C00;
+  --st-deposit: #E7812A; --st-deposit-ink: #200E00;
+  --st-paid: #E04B4B; --st-paid-ink: #FFFFFF;
+  --st-owner: #9466EC; --st-owner-ink: #FFFFFF;
+  --pos: #3CC37A; --neg: #F06A68;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --scrim: rgba(0,0,0,.6);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--f-body); -webkit-font-smoothing: antialiased; }
+body.noscroll { overflow: hidden; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, h4 { text-wrap: balance; }
+.app { max-width: 1320px; margin: 0 auto; padding-inline: 16px; padding-block: 0 56px; }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); display: flex; align-items: center; gap: 12px; padding-block: 14px 10px; flex-wrap: wrap; }
+.brand { font-family: var(--f-display); font-weight: 750; font-size: 22px; letter-spacing: -.015em; display: flex; align-items: center; gap: 10px; }
+.mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.role { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; letter-spacing: .02em; }
+.spacer { flex: 1; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line); margin-bottom: 18px; scrollbar-width: none; }
+.tab { appearance: none; border: 0; background: none; padding: 10px 14px; font-weight: 600; color: var(--ink-2); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; margin-bottom: -1px; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* controls */
+.btn { appearance: none; border: 1px solid var(--line); background: var(--surface); padding: 7px 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: var(--ink); }
+.btn:hover { border-color: var(--axis); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+.btn.ghost:hover { background: var(--surface); border-color: var(--line); }
+.btn.danger { color: var(--neg); }
+.btn.icon { padding: 7px 8px; }
+.btn svg, .tab svg { flex: none; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-bottom: 14px; }
+.nav { display: flex; align-items: center; gap: 4px; }
+.nav h2 { font-family: var(--f-display); font-size: 20px; font-weight: 600; margin: 0 6px; min-width: 148px; text-align: center; letter-spacing: -.01em; }
+.chips { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+.chip { border: 0; background: none; padding: 5px 10px; border-radius: 6px; font-weight: 600; color: var(--ink-2); cursor: pointer; font-size: 13px; white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sw { width: 16px; height: 11px; border-radius: 3px; display: inline-block; flex: none; }
+.st-hold { background: repeating-linear-gradient(135deg, var(--st-hold) 0 7px, var(--st-hold-2) 7px 11px); color: var(--st-hold-ink); }
+.st-deposit { background: var(--st-deposit); color: var(--st-deposit-ink); }
+.st-paid { background: var(--st-paid); color: var(--st-paid-ink); }
+.st-owner { background: var(--st-owner); color: var(--st-owner-ink); }
+.strip { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: -4px 0 12px; font-size: 13px; color: var(--ink-2); }
+.strip b { color: var(--ink); font-weight: 600; }
+.hint { color: var(--muted); font-size: 12.5px; margin: 8px 2px 18px; }
+
+/* timeline (room rack) */
+.tl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.tl { min-width: calc(var(--namew) + var(--n) * var(--dayw)); }
+.tl-head, .tl-row { display: grid; grid-template-columns: var(--namew) repeat(var(--n), var(--dayw)); }
+.tl-row { grid-template-rows: 48px; border-top: 1px solid var(--line-2); }
+.tl-corner, .tl-name { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--line); min-width: 0; }
+.tl-corner { padding: 6px 12px; font-size: 12px; color: var(--muted); display: flex; align-items: flex-end; }
+.tl-name { grid-row: 1; grid-column: 1; padding: 4px 12px; display: flex; flex-direction: column; justify-content: center; }
+.tl-name b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-name small { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-day { text-align: center; padding: 6px 0 5px; font-size: 10.5px; color: var(--muted); border-left: 1px solid var(--line-2); letter-spacing: .03em; }
+.tl-day b { display: block; font-size: 13px; color: var(--ink); font-weight: 600; width: 26px; margin: 1px auto 0; border-radius: 6px; font-variant-numeric: tabular-nums; }
+.tl-day.we { background: var(--weekend); }
+.tl-day.td b { background: var(--accent); color: var(--accent-ink); }
+.tl-cell { grid-row: 1; border: 0; border-left: 1px solid var(--line-2); background: transparent; padding: 0; margin: 0; }
+.tl-cell.we { background: var(--weekend); }
+.tl-cell.td { background: var(--today-wash); }
+button.tl-cell { cursor: pointer; }
+button.tl-cell:hover { background: var(--accent-soft); }
+.tl-bar { grid-row: 1; z-index: 2; align-self: center; height: 30px; margin-inline: calc(var(--dayw) / 2 + 1px); border: 0; border-radius: 7px; padding: 0 8px; font-size: 12px; font-weight: 600; line-height: 30px; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; box-shadow: 0 0 0 2px var(--surface); }
+button.tl-bar { cursor: pointer; }
+button.tl-bar:hover { filter: brightness(1.06); }
+.tl-bar.cl { margin-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.tl-bar.cr { margin-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+
+/* cards & layout */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
+.card h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0 0 12px; letter-spacing: -.005em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.card h3 small { font-family: var(--f-body); font-weight: 500; font-size: 12.5px; color: var(--muted); }
+.stack { display: grid; gap: 16px; }
+.cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; }
+.cols.even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 900px) { .cols, .cols.even { grid-template-columns: minmax(0, 1fr); } }
+.empty { text-align: center; padding: 40px 20px; color: var(--ink-2); }
+.empty h3 { justify-content: center; font-size: 19px; margin-bottom: 6px; color: var(--ink); }
+.empty p { max-width: 52ch; margin: 0 auto 16px; }
+.note { font-size: 13px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 8px; padding: 10px 12px; }
+.note b { color: var(--ink); }
+.warn { border-color: color-mix(in srgb, var(--st-deposit) 45%, var(--line)); }
+ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink-2); }
+ol.steps b { color: var(--ink); }
+
+/* upcoming */
+.up { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+@media (max-width: 700px) { .up { grid-template-columns: minmax(0,1fr); } }
+.up ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.up li { display: grid; grid-template-columns: 78px 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 4px; border-bottom: 1px solid var(--line-2); font-size: 13px; }
+.up li:last-child { border-bottom: 0; }
+.up .d { color: var(--ink-2); font-size: 12px; font-weight: 600; }
+.up .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.up .who small { color: var(--muted); }
+.up .dot { width: 10px; height: 10px; border-radius: 3px; }
+.up .nil { color: var(--muted); font-size: 13px; padding: 6px 4px; }
+
+/* KPI tiles */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; min-width: 0; }
+.kpi .l { font-size: 12.5px; color: var(--ink-2); }
+.kpi .v { font-size: 22px; font-weight: 700; letter-spacing: -.01em; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .v small { font-size: 13px; font-weight: 600; color: var(--muted); }
+.kpi .d { font-size: 12px; color: var(--muted); }
+.kpi.hero { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.kpi.hero .l, .kpi.hero .d, .kpi.hero .v small { color: inherit; opacity: .85; }
+.pos { color: var(--pos); } .neg { color: var(--neg); }
+.kpi.hero .pos, .kpi.hero .neg { color: inherit; }
+
+/* statement */
+.stmt { display: grid; font-size: 13.5px; }
+.stmt .r { display: grid; grid-template-columns: minmax(0,1fr) auto 58px; gap: 10px; padding: 6px 2px; border-bottom: 1px solid var(--line-2); align-items: baseline; }
+.stmt .r > span:nth-child(2), .stmt .r > span:nth-child(3) { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stmt .r > span:nth-child(3) { color: var(--muted); font-size: 12px; }
+.stmt .sub > span:first-child { padding-left: 14px; color: var(--ink-2); }
+.stmt .sum { font-weight: 700; border-bottom-color: var(--line); }
+.stmt .grand { font-weight: 700; font-size: 15px; border-top: 1.5px solid var(--ink); border-bottom: 3px double var(--ink); margin-top: 2px; }
+
+/* tables */
+.tscroll { overflow-x: auto; margin: 0 -4px; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.t th, .t td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.t th { font-size: 11.5px; color: var(--ink-2); font-weight: 600; background: var(--surface-2); letter-spacing: .02em; }
+.t .n { text-align: right; font-variant-numeric: tabular-nums; }
+.t tr.total td { font-weight: 700; border-top: 1.5px solid var(--ink); border-bottom: 0; }
+.t tr.muted td { color: var(--ink-2); }
+.t tbody tr.click { cursor: pointer; }
+.t tbody tr.click:hover td { background: var(--surface-2); }
+.t td.name { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+.t td small { color: var(--muted); }
+.meter { display: inline-grid; grid-template-columns: 44px 36px; align-items: center; gap: 6px; }
+.meter i { height: 6px; border-radius: 3px; background: var(--accent-soft); position: relative; overflow: hidden; display: block; }
+.meter i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--accent); border-radius: 3px; }
+.tag { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink-2); }
+.tag.l { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.tag.s { border-style: dashed; }
+
+/* charts */
+.chart { position: relative; min-height: 260px; }
+.chart svg { display: block; }
+.chart text { font-family: var(--f-body); font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.ckey { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--ink-2); margin-bottom: 8px; }
+.ckey span { display: inline-flex; align-items: center; gap: 6px; }
+.ckey i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.ckey i.ln { width: 16px; height: 2px; border-radius: 1px; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; min-width: 170px; z-index: 5; }
+.tip b { display: block; margin-bottom: 4px; }
+.tip div { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.tip i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 6px; }
+.hbars { display: grid; gap: 8px; }
+.hb { display: grid; grid-template-columns: minmax(110px, 38%) minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; }
+.hb span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+.hb i { height: 10px; border-radius: 0 4px 4px 0; background: var(--s2); display: block; min-width: 2px; }
+.hb b { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 12.5px; }
+
+/* board */
+.board-sum { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.finder { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: flex-end; }
+.finder label { display: grid; gap: 3px; font-size: 12px; color: var(--ink-2); }
+.free { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.free span { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); }
+.free span.ok { border-color: color-mix(in srgb, var(--pos) 45%, var(--line)); }
+.free span.ok::before { content: "✓ "; color: var(--pos); font-weight: 700; }
+.foot { margin-top: 28px; font-size: 12.5px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+
+/* modal */
+.modal { position: fixed; inset: 0; z-index: 50; background: var(--scrim); display: flex; align-items: flex-start; justify-content: center; padding: max(4vh, 16px) 16px; overflow-y: auto; }
+.sheet { background: var(--surface); border-radius: 14px; width: min(660px, 100%); box-shadow: var(--shadow); padding: 20px 20px 18px; border: 1px solid var(--line); }
+.sheet h3 { font-family: var(--f-display); font-size: 21px; font-weight: 600; margin: 0 0 14px; letter-spacing: -.01em; }
+.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+.form .full { grid-column: 1 / -1; }
+@media (max-width: 540px) { .form { grid-template-columns: minmax(0, 1fr); } }
+.f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--ink-2); font-weight: 500; min-width: 0; }
+.f small { color: var(--muted); font-size: 11.5px; min-height: 1em; }
+.in { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: 14px; color: var(--ink); width: 100%; min-width: 0; }
+.in:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea.in { resize: vertical; }
+.money { text-align: right; font-variant-numeric: tabular-nums; }
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.seg.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 540px) { .seg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.seg label { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; gap: 8px; align-items: center; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); background: var(--surface); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--surface-2); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.finbox { grid-column: 1 / -1; border: 1px dashed var(--axis); border-radius: 10px; padding: 12px; display: grid; gap: 12px 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 540px) { .finbox { grid-template-columns: minmax(0, 1fr); } }
+.finbox h4 { grid-column: 1 / -1; margin: 0; font-size: 13px; display: flex; gap: 6px; align-items: center; color: var(--accent); }
+.calc { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+.calc div { display: grid; font-size: 12px; color: var(--ink-2); }
+.calc b { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+.actions .left { margin-right: auto; }
+.err { color: var(--neg); font-size: 13px; margin: 10px 0 0; }
+.meta { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+.chrow { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; gap: 8px; align-items: center; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 500; z-index: 80; box-shadow: var(--shadow); max-width: calc(100vw - 32px); }
+.toast.err { background: var(--neg); color: #fff; }
+
+@media (max-width: 640px) {
+  :root { --namew: 128px; --dayw: 34px; }
+  .nav h2 { min-width: 0; font-size: 18px; }
+  .brand { font-size: 20px; }
+  .kpi .v { font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+body { margin: 0; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+a.btn { text-decoration: none; }
+.topbtns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sheet a { color: var(--accent); }
+@media (max-width: 640px) { .topbtns .btn.ghost:not(.icon) { padding-inline: 8px; } }
+/* mỗi ô = 1 đêm: thanh màu phủ trọn ô, không lấn nửa ô */
+.tl-bar { margin-inline: 2px; padding: 0 8px 0 4px; display: flex; align-items: center; gap: 6px; }
+.tl-bar.cl { margin-left: 0; }
+.tl-bar.cr { margin-right: 0; }
+.tl-bar .nn { flex: none; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 10px; background: color-mix(in srgb, currentColor 20%, transparent); font-size: 11.5px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.tl-bar { text-overflow: clip; }
+.tl-bar .lb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tl-bar .lki { flex: none; display: inline-flex; opacity: .85; margin-left: -2px; }
+
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 0; font-size: 14px; }
+.kv dt { color: var(--ink-2); font-size: 13px; }
+.kv dd { margin: 0; color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+
+:root { --off: #D3D9D6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --off: #2C3633; } }
+:root[data-theme="dark"] { --off: #2C3633; }
+.tl-cell.off, .tl-cell.off.we, .tl-cell.off.td { background: var(--off); cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div id="app" class="app"><div class="empty">Đang tải dữ liệu…</div></div>
+<div id="modal" class="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div id="toast" class="toast" hidden role="status"></div>
+<script>
+(() => {
+'use strict';
+
+/* ---------- constants ---------- */
+const DEF_CH = [
+  { name: 'Airbnb', fee: 15 }, { name: 'Booking.com', fee: 15 }, { name: 'Agoda', fee: 18 },
+  { name: 'Trực tiếp', fee: 0 }, { name: 'Khác', fee: 0 },
+];
+const CATS = ['Điện', 'Nước', 'Internet/TV', 'Dọn phòng & giặt là', 'Đồ dùng & amenities', 'Sửa chữa & bảo trì',
+  'Phí quản lý tòa nhà', 'Marketing & quảng cáo', 'Nhân công', 'Thuế & phí', 'Khác'];
+const ST = {
+  hold: { label: 'Giữ chỗ', long: 'Đã giữ phòng (chưa cọc)' },
+  deposit: { label: 'Đã cọc', long: 'Đã đặt cọc' },
+  paid: { label: 'Đã thanh toán', long: 'Đã thanh toán toàn bộ' },
+  owner: { label: 'Khách chủ nhà', long: 'Khách của chủ nhà' },
+};
+const ST_ORDER = ['hold', 'deposit', 'paid', 'owner'];
+const WD = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const ROLE_LABEL = { admin: 'Quản lý', host: 'Chủ nhà', viewer: 'Chỉ xem' };
+const TABS = {
+  admin: [['cal', 'Lịch phòng'], ['board', 'Bảng chung'], ['fin', 'Lãi lỗ'], ['exp', 'Chi phí'], ['apts', 'Căn hộ & chủ nhà']],
+  host: [['cal', 'Lịch căn của tôi'], ['board', 'Bảng chung']],
+  viewer: [['board', 'Bảng chung']],
+};
+const I = {
+  key: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M16 7l3 3M14 9l2 2"/></svg>',
+  l: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>',
+  r: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>',
+  plus: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  lock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  gear: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  dl: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  sync: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3M4 4v4h4M20 20v-4h-4"/></svg>',
+};
+
+/* ---------- helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const NF = new Intl.NumberFormat('vi-VN');
+const money = n => NF.format(Math.round(+n || 0));
+const acc = n => (n < -0.5 ? '(' + NF.format(Math.round(-n)) + ')' : NF.format(Math.round(n || 0)));
+const pm = v => +String(v ?? '').replace(/\D/g, '') || 0;
+const compact = n => {
+  const a = Math.abs(n);
+  if (a >= 1e9) return (n / 1e9).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tỷ';
+  if (a >= 1e6) return (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tr';
+  if (a >= 1e3) return Math.round(n / 1e3).toLocaleString('vi-VN') + 'k';
+  return String(Math.round(n));
+};
+const pct = x => (isFinite(x) ? (x * 100).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%' : '–');
+const DRE = /^\d{4}-\d{2}-\d{2}$/;
+const D = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+const S2 = t => new Date(t).toISOString().slice(0, 10);
+const addDays = (s, n) => S2(D(s) + n * 864e5);
+const diff = (a, b) => Math.round((D(b) - D(a)) / 864e5);
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const ym = s => String(s || '').slice(0, 7);
+const dim = M => { const [y, m] = M.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).getUTCDate(); };
+const mFirst = M => M + '-01';
+const mNext = M => { const [y, m] = M.split('-').map(Number); return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`; };
+const mPrev = M => { const [y, m] = M.split('-').map(Number); return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`; };
+const mLabel = M => { const [y, m] = M.split('-'); return `Tháng ${+m}/${y}`; };
+const dLabel = s => { const [, m, d] = s.split('-'); return `${+d}/${+m}`; };
+const wd = s => new Date(D(s)).getUTCDay();
+const maxS = (a, b) => (a > b ? a : b);
+const minS = (a, b) => (a < b ? a : b);
+const overlapN = (ci, co, a, b) => Math.max(0, diff(maxS(ci, a), minS(co, b)));
+const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const fmtTime = iso => { try { const d = new Date(iso); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ${d.getDate()}/${d.getMonth() + 1}`; } catch { return ''; } };
+const dayName = d => { const t = todayStr(); if (d === t) return 'Hôm nay'; if (d === addDays(t, 1)) return 'Ngày mai'; return `${WD[wd(d)]} ${dLabel(d)}`; };
+const byOrder = (a, b) => (+a.order || 0) - (+b.order || 0) || String(a.name || '').localeCompare(String(b.name || ''), 'vi');
+
+I.ext = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+I.user = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
+
+/* ---------- state ---------- */
+const TK = 'socanho_token';
+let TOKEN = null;
+try { TOKEN = localStorage.getItem(TK); } catch (e) { TOKEN = null; }
+const S = {
+  mode: 'loading', role: 'viewer', uid: null, me: '',
+  tab: 'cal', month: ym(todayStr()), filter: 'all', scrollToday: true,
+  per: { type: 'month', key: ym(todayStr()) }, expMonth: ym(todayStr()),
+  apts: {}, bks: [], fin: {}, exp: {}, hosts: {}, cfg: { channels: DEF_CH, taxPct: 0 },
+  board: null, sheetUrl: '', loadedAt: null, errText: '',
+  find: { ci: '', co: '' },
+};
+let MS = null; // modal state
+
+/* ---------- server calls (google.script.run) ---------- */
+/* Link máy chủ cho bản web đặt ngoài Google. Bản chạy trong Apps Script dùng google.script.run. */
+const API_URL = 'https://script.google.com/macros/s/AKfycbxlodBriKq9lbW32ZlpSR3o74XcIK876AaBJ3_7qXC94Ng-4kmtASGQE4fMNp7KqhcBiw/exec';
+function api(name, ...args) {
+  const g = window.google && google.script && google.script.run;
+  if (g) return new Promise((res, rej) => { g.withSuccessHandler(res).withFailureHandler(rej)[name](...args); });
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(API_URL)) return Promise.reject(new Error('Chưa cấu hình link máy chủ cho bản web.'));
+  // credentials: 'omit' = không gửi tài khoản Google → không bị lỗi khi máy đăng nhập nhiều tài khoản.
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: name, args }), credentials: 'omit', redirect: 'follow' })
+    .catch(() => { throw new Error('NetworkError'); })
+    .then(r => r.text())
+    .then(t => {
+      let o;
+      try { o = JSON.parse(t); } catch (e) { throw new Error('Máy chủ Google chưa trả lời đúng. Kiểm tra đã dán Code.gs mới, đã tạo Phiên bản mới, và bản triển khai để "Bất kỳ ai".'); }
+      if (!o.ok) throw new Error(o.err || 'Có lỗi xảy ra. Thử lại.');
+      return o.val;
+    });
+}
+function parseErr(e) {
+  const m = String((e && e.message) || e || '');
+  const k = m.match(/(AUTH|FORBIDDEN)\|([\s\S]*)$/);
+  if (k) return { code: k[1], msg: k[2] };
+  if (/NetworkError|HTTP 0|Failed to fetch/i.test(m)) return { code: 'NET', msg: 'Mất kết nối mạng. Kiểm tra mạng rồi thử lại.' };
+  return { code: '', msg: m.replace(/^(Error|Exception|ScriptError):\s*/i, '') || 'Có lỗi xảy ra. Thử lại.' };
+}
+function setToken(t) {
+  TOKEN = t || null;
+  try { if (t) localStorage.setItem(TK, t); else localStorage.removeItem(TK); } catch (e) { /* trình duyệt chặn lưu: phải đăng nhập lại mỗi lần mở */ }
+}
+function errMsg(e) {
+  const p = parseErr(e);
+  if (p.code === 'AUTH') { setToken(null); resetPrivate(); schedule(); }
+  return p.msg;
+}
+function resetPrivate() {
+  Object.assign(S, { role: 'viewer', uid: null, me: '', apts: {}, bks: [], fin: {}, exp: {}, hosts: {}, sheetUrl: '' });
+}
+const byId = arr => Object.fromEntries((arr || []).map(x => [x.id, Object.assign({}, x, { _id: x.id })]));
+function applyData(d) {
+  S.role = d.role === 'admin' ? 'admin' : 'host';
+  S.uid = d.uid; S.me = d.me || '';
+  S.apts = byId(d.apts);
+  S.bks = (d.bookings || []).map(b => cleanBk(Object.assign({}, b, { _id: b.id }))).filter(Boolean);
+  S.fin = byId(d.fin); S.exp = byId(d.exp); S.hosts = byId(d.hosts);
+  if (d.cfg) S.cfg = { channels: d.cfg.channels && d.cfg.channels.length ? d.cfg.channels : DEF_CH, taxPct: +d.cfg.taxPct || 0 };
+  S.sheetUrl = d.sheetUrl || '';
+}
+let loading = null;
+function loadAll(quiet) {
+  if (loading) return loading;
+  const jobs = [api('getBoard').then(b => { S.board = b; })];
+  if (TOKEN) {
+    jobs.push(api('getData', TOKEN).then(applyData, e => {
+      const p = parseErr(e);
+      if (p.code === 'AUTH') { setToken(null); resetPrivate(); }
+      else throw e;
+    }));
+  } else resetPrivate();
+  loading = Promise.all(jobs).then(() => {
+    S.mode = 'ok'; S.loadedAt = new Date();
+  }, e => {
+    if (S.mode === 'loading') { S.mode = 'err'; S.errText = parseErr(e).msg; }
+    else if (!quiet) toast(parseErr(e).msg, 'err');
+  }).then(() => { loading = null; schedule(); });
+  return loading;
+}
+function cleanBk(b) {
+  if (!b || !DRE.test(b.ci) || !DRE.test(b.co) || b.co <= b.ci) return null;
+  if (!ST[b.st]) b.st = 'hold';
+  return b;
+}
+const allBk = () => S.bks;
+const listApts = () => Object.values(S.apts).sort(byOrder);
+const role = () => S.role;
+const finOf = id => S.fin[id] || {};
+const who = id => (id === 'quanly' ? 'quản lý' : ((S.hosts[id] && S.hosts[id].label) || id || '—'));
+
+/* ---------- finance engine ---------- */
+function activeDays(a, M) {
+  const s = mFirst(M), e = mFirst(mNext(M));
+  const st = DRE.test(a.start || '') ? a.start : '2000-01-01';
+  const en = DRE.test(a.end || '') ? addDays(a.end, 1) : '9999-12-31';
+  return Math.max(0, diff(maxS(st, s), minS(en, e)));
+}
+const NUMS = ['gross', 'fee', 'cogsL', 'cogsO', 'opexFixed', 'opexVar', 'sold', 'held', 'heldVal', 'ownerN', 'avail', 'availNet', 'receivable', 'bookings'];
+function calcMonth(M, bks) {
+  const n = dim(M), s = mFirst(M), e = mFirst(mNext(M));
+  const rows = {};
+  const R = a => rows[a._id] || (rows[a._id] = Object.assign({ id: a._id, name: a.name, kind: a.kind, order: a.order, sample: a.sample }, Object.fromEntries(NUMS.map(k => [k, 0]))));
+  for (const a of Object.values(S.apts)) {
+    const act = activeDays(a, M);
+    if (!act) continue;
+    const r = R(a);
+    r.avail += act;
+    if (a.kind === 'leased') r.cogsL += (+a.rent || 0) * act / n;
+    r.opexFixed += (+a.fixed || 0) * act / n;
+  }
+  for (const b of bks) {
+    const k = overlapN(b.ci, b.co, s, e);
+    if (!k) continue;
+    const a = S.apts[b.aptId];
+    if (!a) continue;
+    const r = R(a), N = diff(b.ci, b.co) || 1, fr = k / N;
+    if (b.st === 'owner') { r.ownerN += k; continue; }
+    const f = finOf(b._id), total = +f.total || 0;
+    if (b.st === 'hold') { r.held += k; r.heldVal += total * fr; continue; }
+    r.sold += k; r.gross += total * fr; r.fee += total * (+f.feePct || 0) / 100 * fr;
+    if (a.kind === 'managed') {
+      const oc = (f.ocost !== null && f.ocost !== undefined && f.ocost !== '') ? +f.ocost : N * (+a.onight || 0);
+      r.cogsO += oc * fr;
+    }
+    if (b.ci >= s && b.ci < e) { r.receivable += Math.max(0, total - (+f.paid || 0)); r.bookings += 1; }
+  }
+  for (const r of Object.values(rows)) r.availNet = Math.max(0, r.avail - r.ownerN);
+  const cats = {}; let common = 0;
+  for (const x of Object.values(S.exp)) {
+    if (ym(x.date) !== M) continue;
+    const amt = +x.amount || 0;
+    const c = CATS.includes(x.cat) ? x.cat : 'Khác';
+    cats[c] = (cats[c] || 0) + amt;
+    if (x.aptId && S.apts[x.aptId]) R(S.apts[x.aptId]).opexVar += amt; else common += amt;
+  }
+  return { rows, cats, common };
+}
+function derive(r) {
+  r.cogs = r.cogsL + r.cogsO; r.net = r.gross - r.fee; r.gp = r.net - r.cogs;
+  r.opex = r.opexFixed + r.opexVar; r.profit = r.gp - r.opex;
+  r.occ = r.availNet ? r.sold / r.availNet : NaN; r.adr = r.sold ? r.gross / r.sold : NaN;
+  r.margin = r.net ? r.profit / r.net : NaN;
+  return r;
+}
+function summarize(months, bks = allBk()) {
+  const per = {}, cats = {}; let common = 0; let fixedTotal = 0;
+  for (const M of months) {
+    const c = calcMonth(M, bks);
+    for (const [id, row] of Object.entries(c.rows)) {
+      const p = per[id] || (per[id] = Object.assign({}, row, Object.fromEntries(NUMS.map(k => [k, 0]))));
+      for (const k of NUMS) p[k] += row[k];
+      fixedTotal += row.opexFixed;
+    }
+    for (const [k, v] of Object.entries(c.cats)) cats[k] = (cats[k] || 0) + v;
+    common += c.common;
+  }
+  const rows = Object.values(per).map(derive).sort(byOrder);
+  const tot = derive(Object.assign({ id: '_t', name: 'Tổng' }, Object.fromEntries(NUMS.map(k => [k, rows.reduce((s, r) => s + r[k], 0)]))));
+  tot.common = common;
+  tot.pre = tot.gp - tot.opex - common;
+  tot.tax = tot.gross * (+S.cfg.taxPct || 0) / 100;
+  tot.after = tot.pre - tot.tax;
+  tot.cost = tot.cogs + tot.opex + common + tot.tax;
+  tot.marginAfter = tot.net ? tot.after / tot.net : NaN;
+  if (fixedTotal > 0.5) cats['Chi phí cố định hàng tháng (theo căn)'] = fixedTotal;
+  return { rows, tot, cats, common };
+}
+function stmtLines(A) {
+  const t = A.tot, L = [
+    ['Doanh thu phòng', t.gross, ''], ['Phí kênh bán (OTA)', -t.fee, 'sub'], ['Doanh thu thuần', t.net, 'sum'],
+    ['Giá vốn – tiền thuê nhà', -t.cogsL, 'sub'], ['Giá vốn – tiền trả chủ nhà', -t.cogsO, 'sub'], ['Lợi nhuận gộp', t.gp, 'sum'],
+    ['Chi phí cố định hàng tháng', -t.opexFixed, 'sub'], ['Chi phí phát sinh theo căn', -t.opexVar, 'sub'], ['Chi phí chung', -t.common, 'sub'],
+  ];
+  if (S.cfg.taxPct > 0) {
+    L.push(['Lợi nhuận trước thuế', t.pre, 'sum'], [`Thuế khoán ước tính (${S.cfg.taxPct}% doanh thu)`, -t.tax, 'sub'], ['Lợi nhuận sau thuế', t.after, 'grand']);
+  } else L.push(['Lợi nhuận ròng', t.pre, 'grand']);
+  return L.map(([label, v, cls]) => ({ label, v, cls }));
+}
+
+/* periods */
+function perMonths(p) {
+  if (p.type === 'month') return [p.key];
+  if (p.type === 'quarter') { const [y, q] = p.key.split('-Q').map(Number); return [0, 1, 2].map(i => `${y}-${String((q - 1) * 3 + i + 1).padStart(2, '0')}`); }
+  return Array.from({ length: 12 }, (_, i) => `${p.key}-${String(i + 1).padStart(2, '0')}`);
+}
+function perShift(p, d) {
+  if (p.type === 'month') return { type: 'month', key: d > 0 ? mNext(p.key) : mPrev(p.key) };
+  if (p.type === 'quarter') { let [y, q] = p.key.split('-Q').map(Number); q += d; if (q > 4) { q = 1; y++; } if (q < 1) { q = 4; y--; } return { type: 'quarter', key: `${y}-Q${q}` }; }
+  return { type: 'year', key: String(+p.key + d) };
+}
+function perFrom(type, M) {
+  const [y, m] = M.split('-').map(Number);
+  if (type === 'month') return { type, key: M };
+  if (type === 'quarter') return { type, key: `${y}-Q${Math.ceil(m / 3)}` };
+  return { type, key: String(y) };
+}
+function perLabel(p) {
+  if (p.type === 'month') return mLabel(p.key);
+  if (p.type === 'quarter') { const [y, q] = p.key.split('-Q'); return `Quý ${q}/${y}`; }
+  return `Năm ${p.key}`;
+}
+const PREV_WORD = { month: 'tháng trước', quarter: 'quý trước', year: 'năm trước' };
+
+/* ---------- rendering ---------- */
+let rafId = 0;
+function schedule() { if (!rafId) rafId = requestAnimationFrame(render); }
+
+function render() {
+  rafId = 0;
+  const app = $('#app');
+  const tw = app.querySelector('.tl-wrap');
+  const keep = tw ? tw.scrollLeft : null;
+  let html;
+  if (S.mode === 'loading') html = topbar() + '<div class="empty">Đang tải dữ liệu…</div>';
+  else if (S.mode === 'err') html = topbar() + `<div class="card empty"><h3>Chưa tải được dữ liệu</h3><p>${esc(S.errText)}</p><button class="btn primary" data-act="retry">Thử lại</button></div>`;
+  else {
+    const r = role();
+    const tabs = TABS[r];
+    if (!tabs.some(t => t[0] === S.tab)) S.tab = tabs[0][0];
+    html = topbar(r) + (tabs.length > 1 ? tabbar(tabs) : '') + view(r);
+  }
+  app.innerHTML = html;
+  const nw = app.querySelector('.tl-wrap');
+  if (nw) {
+    if (S.scrollToday) {
+      const td = nw.querySelector('.tl-day.td');
+      const nameW = (nw.querySelector('.tl-corner') || {}).offsetWidth || 0;
+      nw.scrollLeft = td ? Math.max(0, td.offsetLeft - nameW - td.offsetWidth * 2) : 0;
+      S.scrollToday = false;
+    } else if (keep != null) nw.scrollLeft = keep;
+  }
+  const tr = $('#trend');
+  if (tr) drawTrend(tr);
+}
+
+function topbar(r) {
+  let right = '';
+  if (r) {
+    right += `<button class="btn ghost icon" data-act="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">${I.sync}</button>`;
+    if (r === 'admin') {
+      if (S.sheetUrl) right += `<a class="btn ghost" href="${esc(S.sheetUrl)}" target="_blank" rel="noopener">${I.ext}Google Sheet</a>`;
+      right += `<button class="btn ghost" data-act="settings">${I.gear}Cài đặt</button>`;
+    }
+    right += TOKEN
+      ? `<button class="btn ghost" data-act="pw" title="Đổi mật khẩu">${I.user}${esc(S.me || S.uid || '')}</button><button class="btn" data-act="logout">Đăng xuất</button>`
+      : `<button class="btn primary" data-act="login">Đăng nhập</button>`;
+  }
+  return `<header class="top"><div class="brand"><span class="mark">${I.key}</span>Wabisabi Homestay</div>
+    ${r ? `<span class="role">${ROLE_LABEL[r]}</span>` : ''}<span class="spacer"></span><div class="topbtns">${right}</div></header>`;
+}
+function tabbar(tabs) {
+  return `<nav class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab" role="tab" aria-selected="${S.tab === k}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav>`;
+}
+function view(r) {
+  switch (S.tab) {
+    case 'cal': return viewCal(r);
+    case 'board': return viewBoard(r);
+    case 'fin': return viewFin();
+    case 'exp': return viewExp();
+    case 'apts': return viewApts();
+  }
+  return '';
+}
+function monthNav(prefix, M, label) {
+  return `<div class="nav"><button class="btn icon" data-act="${prefix}-prev" aria-label="Trước">${I.l}</button><h2>${label || mLabel(M)}</h2><button class="btn icon" data-act="${prefix}-next" aria-label="Sau">${I.r}</button></div>`;
+}
+const NIGHT_HINT = 'Mỗi ô là 1 đêm, số trên thanh màu là số đêm. Ví dụ nhận phòng ngày 8, trả ngày 11 thì tô 3 ô 8, 9, 10; ô 11 còn trống cho khách mới. Ô xám: căn chưa thuê / chưa nhận vận hành hoặc đã hết hợp đồng, không nhận khách.';
+const legend = () => `<div class="legend">${ST_ORDER.map(k => `<span><i class="sw st-${k}"></i>${ST[k].label}</span>`).join('')}<span><i class="sw" style="background:var(--off)"></i>Chưa thuê / chưa vận hành</span></div>`;
+/** Ngoài thời gian căn đã thuê / đã nhận vận hành (trước ngày bắt đầu, sau ngày kết thúc). */
+const isOff = (a, d) => !!a && ((DRE.test(a.start || '') && d < a.start) || (DRE.test(a.end || '') && d > a.end));
+const offWhy = (a, d) => (DRE.test(a.start || '') && d < a.start ? `Chưa thuê / chưa nhận vận hành (bắt đầu ${dLabel(a.start)}/${a.start.slice(0, 4)})` : `Đã hết hợp đồng (kết thúc ${dLabel(a.end)}/${a.end.slice(0, 4)})`);
+
+/* timeline: rows [{id,name,sub,bks:[{ci,co,st,guest,_id}]}] */
+function timeline(rows, opt) {
+  const M = S.month, n = dim(M), first = mFirst(M), end = mFirst(mNext(M)), td = todayStr();
+  const days = Array.from({ length: n }, (_, i) => addDays(first, i));
+  let h = `<div class="tl-wrap"><div class="tl" style="--n:${n}"><div class="tl-head"><div class="tl-corner">Căn hộ</div>`;
+  for (const d of days) { const w = wd(d); h += `<div class="tl-day${w === 0 || w === 6 ? ' we' : ''}${d === td ? ' td' : ''}">${WD[w]}<b>${+d.slice(8)}</b></div>`; }
+  h += '</div>';
+  for (const r of rows) {
+    h += `<div class="tl-row"><div class="tl-name"><b title="${esc(r.name)}">${esc(r.name)}</b>${r.sub ? `<small>${r.sub}</small>` : ''}</div>`;
+    days.forEach((d, i) => {
+      const w = wd(d), cls = `tl-cell${w === 0 || w === 6 ? ' we' : ''}${d === td ? ' td' : ''}`;
+      if (isOff(r, d)) { h += `<div class="${cls} off" style="grid-column:${i + 2}" title="${esc(offWhy(r, d))}"></div>`; return; }
+      h += opt.editable
+        ? `<button class="${cls}" style="grid-column:${i + 2}" data-act="new" data-apt="${esc(r.id)}" data-d="${d}" aria-label="Thêm booking ${esc(r.name)} ngày ${dLabel(d)}"></button>`
+        : `<div class="${cls}" style="grid-column:${i + 2}"></div>`;
+    });
+    for (const b of r.bks) {
+      if (!(b.ci < end && b.co > first)) continue;
+      // Mỗi ô là 1 đêm: thanh màu phủ đúng các đêm từ ngày nhận đến trước ngày trả.
+      const lastNight = addDays(b.co, -1);
+      const cutL = b.ci < first, cutR = lastNight >= end;
+      const s = cutL ? 0 : diff(first, b.ci), e = cutR ? n - 1 : diff(first, lastNight);
+      const nights = diff(b.ci, b.co);
+      const label = opt.names ? (b.guest || ST[b.st].label) : ST[b.st].label;
+      const title = `${ST[b.st].long} · ${nights} đêm: đêm ${dLabel(b.ci)} → đêm ${dLabel(lastNight)}, trả phòng ${dLabel(b.co)}${opt.names && b.guest ? ' · ' + b.guest : ''}${b.lock ? ' · Bạn chỉ xem được' : ''}`;
+      const cls = `tl-bar st-${b.st}${cutL ? ' cl' : ''}${cutR ? ' cr' : ''}${b.lock ? ' lk' : ''}`;
+      const st = `grid-column:${s + 2}/${e + 3}`;
+      const inner = `<span class="nn" aria-label="${nights} đêm">${nights}</span>${b.lock ? `<span class="lki" aria-label="Chỉ xem">${I.lock}</span>` : ''}<span class="lb">${esc(label)}</span>`;
+      h += opt.editable
+        ? `<button class="${cls}" style="${st}" data-act="edit" data-id="${esc(b._id)}" title="${esc(title)}">${inner}</button>`
+        : `<div class="${cls}" style="${st}" title="${esc(title)}">${inner}</div>`;
+    }
+    h += '</div>';
+  }
+  return h + '</div></div>';
+}
+
+const hostName = h => (h ? esc((S.hosts[h] && S.hosts[h].label) || h) : 'chưa gán');
+const aptSub = a => (a.kind === 'managed' ? `Chủ nhà · ${hostName(a.hostId)}` : 'Thuê lại để vận hành');
+
+/* ---- Calendar tab ---- */
+function viewCal(r) {
+  const admin = r === 'admin';
+  let apts = listApts();
+  if (admin) apts = apts.filter(a => a.active !== false);
+  if (admin && S.filter !== 'all') apts = apts.filter(a => a.kind === S.filter);
+  const bks = allBk();
+  const rows = apts.map(a => ({ id: a._id, name: a.name, start: a.start, end: a.end, sub: admin ? aptSub(a) : esc(a.address || ''), bks: bks.filter(b => b.aptId === a._id) }));
+  const chips = admin ? `<div class="chips">${[['all', 'Tất cả'], ['leased', 'Căn thuê lại'], ['managed', 'Căn chủ nhà']].map(([k, l]) => `<button class="chip" aria-pressed="${S.filter === k}" data-act="filter" data-v="${k}">${l}</button>`).join('')}</div>` : '';
+  let out = `<div class="toolbar">${monthNav('m', S.month)}<button class="btn" data-act="m-today">Hôm nay</button>${chips}<span class="spacer"></span>${apts.length ? `<button class="btn primary" data-act="new">${I.plus}Booking</button>` : ''}</div>`;
+  if (!apts.length) {
+    if (admin) return out + `<div class="card empty"><h3>Chưa có căn hộ nào</h3><p>Thêm căn bạn thuê lại hoặc căn vận hành cho chủ nhà, rồi bấm vào ngày để tạo booking. Muốn xem thử trước: mở Google Sheet → menu Wabisabi Homestay → Tạo dữ liệu mẫu.</p><button class="btn primary" data-act="apt-new">${I.plus}Thêm căn hộ</button></div>`;
+    return out + `<div class="card empty"><h3>Chưa có căn nào được gán cho bạn</h3><p>Người quản lý sẽ gán căn hộ của bạn vào tài khoản này.</p></div>`;
+  }
+  out += `<div class="toolbar">${legend()}</div>`;
+  if (admin) {
+    const A = summarize([S.month], bks).tot;
+    out += `<div class="strip"><span>Công suất <b>${pct(A.occ)}</b></span><span>Đêm đã bán <b>${A.sold}</b></span><span>Đêm đang giữ <b>${A.held}</b></span><span>Doanh thu phòng <b>${money(A.gross)} ₫</b></span></div>`;
+  }
+  out += timeline(rows, { editable: true, names: true });
+  out += `<p class="hint">${NIGHT_HINT} Bấm vào ô trống để thêm booking, bấm vào thanh màu để sửa.${admin ? '' : ' Bạn chỉ thêm được booking Khách chủ nhà. Booking có biểu tượng ổ khóa do quản lý phụ trách: bạn chỉ xem ngày và trạng thái, tên khách được ẩn.'}</p>`;
+  out += upcoming(rows);
+  return out;
+}
+function upcoming(rows) {
+  const t = todayStr(), t7 = addDays(t, 7), ins = [], outs = [];
+  for (const r of rows) for (const b of r.bks) {
+    if (b.ci >= t && b.ci < t7) ins.push({ d: b.ci, name: r.name, b });
+    if (b.co >= t && b.co < t7) outs.push({ d: b.co, name: r.name, b });
+  }
+  const li = x => `<li><span class="d">${dayName(x.d)}</span><i class="dot st-${x.b.st}"></i><span class="who">${esc(x.name)} <small>· ${esc(x.b.guest || ST[x.b.st].label)}</small></span><small>${diff(x.b.ci, x.b.co)} đêm</small></li>`;
+  const list = a => (a.length ? `<ul>${a.sort((p, q) => (p.d < q.d ? -1 : 1)).map(li).join('')}</ul>` : '<p class="nil">Không có trong 7 ngày tới.</p>');
+  return `<div class="up"><div class="card"><h3>Nhận phòng <small>7 ngày tới</small></h3>${list(ins)}</div><div class="card"><h3>Trả phòng <small>7 ngày tới · lên lịch dọn</small></h3>${list(outs)}</div></div>`;
+}
+
+/* ---- Public board ---- */
+function boardRows() {
+  const apts = (S.board && S.board.apts) || [];
+  return apts.map(d => {
+    const ranges = Array.isArray(d.ranges) ? d.ranges.filter(x => Array.isArray(x) && DRE.test(x[0]) && DRE.test(x[1]) && x[1] > x[0]) : [];
+    return { key: String(d.id), name: String(d.name || 'Căn hộ'), order: +d.order || 0, start: d.start || '', end: d.end || '', ranges: ranges.map(x => ({ ci: x[0], co: x[1], st: ST[x[2]] ? x[2] : 'hold', _id: '' })) };
+  }).sort(byOrder);
+}
+function viewBoard(r) {
+  const rows = boardRows(), t = todayStr();
+  const busy = rr => rr.ranges.find(x => x.ci <= t && t < x.co);
+  const open = rows.filter(x => !isOff(x, t));
+  const free = open.filter(x => !busy(x)).length;
+  let out = `<div class="toolbar">${monthNav('m', S.month)}<button class="btn" data-act="m-today">Hôm nay</button><span class="spacer"></span>${legend()}</div>`;
+  if (r === 'admin') out += `<div class="note" style="margin-bottom:14px">Ai có link app đều xem được trang này mà <b>không cần đăng nhập</b>: chỉ có tên căn và màu trạng thái, không có tên khách, giá hay ghi chú, và không sửa được.</div>`;
+  if (!rows.length) return out + `<div class="card empty"><h3>Chưa có căn hộ nào trên bảng</h3><p>Lịch các căn sẽ hiện ở đây khi người quản lý thêm căn và booking.</p></div>`;
+  out += `<div class="board-sum"><div class="kpi"><div class="l">Tối nay (${dLabel(t)})</div><div class="v">${free}<small> / ${open.length} căn trống</small></div></div>`;
+  const f = S.find, ok = DRE.test(f.ci) && DRE.test(f.co) && f.co > f.ci;
+  out += `<div class="kpi" style="flex:1;min-width:260px"><div class="l">Tìm căn trống</div><div class="finder"><label>Nhận phòng<input class="in" type="date" id="f-ci" value="${f.ci}"></label><label>Trả phòng<input class="in" type="date" id="f-co" value="${f.co}"></label></div>`;
+  if (ok) {
+    const outside = x => isOff(x, f.ci) || isOff(x, addDays(f.co, -1));
+    const res = rows.map(x => ({ x, off: outside(x), ok: !outside(x) && !x.ranges.some(b => b.ci < f.co && b.co > f.ci) }));
+    const nOk = res.filter(z => z.ok).length;
+    out += `<div class="free">${res.map(z => `<span class="${z.ok ? 'ok' : ''}">${esc(z.x.name)}${z.ok ? '' : z.off ? ' · chưa nhận khách' : ' · đã có lịch'}</span>`).join('')}</div><div class="d" style="margin-top:6px">${nOk} căn trống ${diff(f.ci, f.co)} đêm từ ${dLabel(f.ci)}</div>`;
+  } else if (f.ci || f.co) out += `<div class="d" style="margin-top:6px">Chọn ngày trả phòng sau ngày nhận phòng.</div>`;
+  out += `</div></div>`;
+  out += timeline(rows.map(x => ({ id: x.key, name: x.name, start: x.start, end: x.end, sub: isOff(x, t) ? 'Tối nay: chưa nhận khách' : busy(x) ? `Tối nay: ${ST[busy(x).st].label.toLowerCase()}` : 'Tối nay: trống', bks: x.ranges })), { editable: false, names: false });
+  out += `<p class="hint">${NIGHT_HINT} ${S.loadedAt ? 'Cập nhật lúc ' + fmtTime(S.loadedAt.toISOString()) + '. ' : ''}Trang tự làm mới mỗi phút.</p>`;
+  return out;
+}
+
+/* ---- Finance tab ---- */
+function viewFin() {
+  const p = S.per, months = perMonths(p), bks = allBk();
+  const A = summarize(months, bks), P = summarize(perMonths(perShift(p, -1)), bks), t = A.tot;
+  const chips = `<div class="chips">${[['month', 'Tháng'], ['quarter', 'Quý'], ['year', 'Năm']].map(([k, l]) => `<button class="chip" aria-pressed="${p.type === k}" data-act="p-type" data-v="${k}">${l}</button>`).join('')}</div>`;
+  let out = `<div class="toolbar">${monthNav('p', null, perLabel(p))}${chips}<span class="spacer"></span><button class="btn" data-act="export">${I.dl}Xuất báo cáo ra Google Sheet</button></div>`;
+  if (!Object.keys(S.apts).length) return out + `<div class="card empty"><h3>Chưa có số liệu</h3><p>Thêm căn hộ và booking, báo cáo lãi lỗ sẽ tự tính.</p></div>`;
+  const profitKey = S.cfg.taxPct > 0 ? 'after' : 'pre';
+  const dP = t[profitKey] - P.tot[profitKey];
+  const curM = ym(todayStr());
+  const future = months.some(M => M > curM);
+  out += `<div class="kpis">
+    <div class="kpi hero"><div class="l">${S.cfg.taxPct > 0 ? 'Lợi nhuận sau thuế' : 'Lợi nhuận ròng'}</div><div class="v">${acc(t[profitKey])} <small>₫</small></div><div class="d">${dP >= 0 ? '▲' : '▼'} ${money(Math.abs(dP))} so với ${PREV_WORD[p.type]} · biên ${pct(t.net ? t[profitKey] / t.net : NaN)}</div></div>
+    <div class="kpi"><div class="l">Doanh thu thuần</div><div class="v">${money(t.net)} <small>₫</small></div><div class="d">Doanh thu phòng ${compact(t.gross)} − phí kênh ${compact(t.fee)}</div></div>
+    <div class="kpi"><div class="l">Công suất phòng</div><div class="v">${pct(t.occ)}</div><div class="d">${t.sold} / ${t.availNet} đêm khả dụng</div></div>
+    <div class="kpi"><div class="l">Giá TB/đêm (ADR)</div><div class="v">${isFinite(t.adr) ? money(t.adr) : '–'} <small>₫</small></div><div class="d">RevPAR ${t.availNet ? money(t.gross / t.availNet) : '–'} ₫</div></div>
+    <div class="kpi"><div class="l">Khách còn nợ</div><div class="v">${money(t.receivable)} <small>₫</small></div><div class="d">booking nhận phòng trong kỳ</div></div>
+    <div class="kpi"><div class="l">Đang giữ chỗ (chưa cọc)</div><div class="v">${t.held} <small>đêm</small></div><div class="d">≈ ${money(t.heldVal)} ₫ chưa tính doanh thu</div></div>
+  </div>`;
+  const total = t.net || 0;
+  out += `<div class="cols"><div class="card"><h3>Kết quả kinh doanh <small>${perLabel(p)}${future ? ' · có tháng dự kiến' : ''}</small></h3><div class="stmt">
+    <div class="r" style="border-bottom:1px solid var(--line)"><span style="color:var(--muted);font-size:12px">Khoản mục</span><span style="color:var(--muted);font-size:12px">VND</span><span>% DT thuần</span></div>
+    ${stmtLines(A).map(l => `<div class="r ${l.cls}"><span>${esc(l.label)}</span><span class="${l.cls === 'grand' && l.v < 0 ? 'neg' : ''}">${acc(l.v)}</span><span>${total ? pct(l.v / total) : ''}</span></div>`).join('')}
+  </div></div>
+  <div class="card"><h3>12 tháng gần nhất <small>đến ${mLabel(months[months.length - 1]).toLowerCase()}</small></h3>
+    <div class="ckey"><span><i style="background:var(--s1)"></i>Doanh thu thuần</span><span><i style="background:var(--s2)"></i>Tổng chi phí</span><span><i class="ln" style="background:var(--s3)"></i>Lãi/lỗ ròng</span><span style="color:var(--muted)">Cột nhạt = tháng dự kiến</span></div>
+    <div class="chart" id="trend" data-end="${months[months.length - 1]}"></div></div></div>`;
+  const rowHtml = r => `<tr class="${r.sample ? 'muted' : ''}"><td class="name" title="${esc(r.name)}">${esc(r.name)} ${r.kind === 'managed' ? '<span class="tag">chủ nhà</span>' : '<span class="tag l">thuê lại</span>'}</td>
+    <td class="n">${r.sold}</td><td class="n"><span class="meter" style="--w:${isFinite(r.occ) ? Math.min(100, r.occ * 100) : 0}%"><i></i>${pct(r.occ)}</span></td><td class="n">${isFinite(r.adr) ? money(r.adr) : '–'}</td>
+    <td class="n">${acc(r.net)}</td><td class="n">${acc(r.cogs)}</td><td class="n">${acc(r.gp)}</td><td class="n">${acc(r.opex)}</td>
+    <td class="n ${r.profit < 0 ? 'neg' : ''}"><b>${acc(r.profit)}</b></td><td class="n">${pct(r.margin)}</td></tr>`;
+  out += `<div class="card" style="margin-top:16px"><h3>Lãi lỗ theo căn <small>${perLabel(p)} · VND</small></h3><div class="tscroll"><table class="t"><thead><tr><th>Căn hộ</th><th class="n">Đêm bán</th><th class="n">Công suất</th><th class="n">ADR</th><th class="n">DT thuần</th><th class="n">Giá vốn</th><th class="n">Lãi gộp</th><th class="n">CP vận hành</th><th class="n">Lãi/lỗ</th><th class="n">Biên</th></tr></thead><tbody>
+    ${A.rows.map(rowHtml).join('')}
+    ${A.common ? `<tr class="muted"><td class="name">Chi phí chung (không phân bổ)</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="n">${acc(A.common)}</td><td class="n neg"><b>${acc(-A.common)}</b></td><td></td></tr>` : ''}
+    <tr class="total"><td>Tổng</td><td class="n">${t.sold}</td><td class="n">${pct(t.occ)}</td><td class="n">${isFinite(t.adr) ? money(t.adr) : '–'}</td><td class="n">${acc(t.net)}</td><td class="n">${acc(t.cogs)}</td><td class="n">${acc(t.gp)}</td><td class="n">${acc(t.opex + A.common)}</td><td class="n ${t.pre < 0 ? 'neg' : ''}">${acc(t.pre)}</td><td class="n">${pct(t.net ? t.pre / t.net : NaN)}</td></tr>
+  </tbody></table></div>${S.cfg.taxPct > 0 ? `<p class="hint" style="margin-bottom:0">Lãi/lỗ theo căn là trước thuế khoán.</p>` : ''}</div>`;
+  const cats = Object.entries(A.cats).filter(([, v]) => v > 0.5).sort((a, b) => b[1] - a[1]);
+  const mx = cats.length ? cats[0][1] : 1;
+  out += `<div class="cols even" style="margin-top:16px"><div class="card"><h3>Chi phí vận hành theo hạng mục <small>${perLabel(p)}</small></h3>${cats.length ? `<div class="hbars">${cats.map(([k, v]) => `<div class="hb"><span title="${esc(k)}">${esc(k)}</span><i style="width:${Math.max(1, v / mx * 100)}%"></i><b>${money(v)}</b></div>`).join('')}</div>` : '<p class="nil" style="color:var(--muted)">Chưa có chi phí trong kỳ.</p>'}</div>`;
+  out += `<div class="card"><h3>Cách tính</h3><ol class="steps">
+    <li><b>Doanh thu</b> chỉ tính booking <b>Đã cọc</b> và <b>Đã thanh toán</b>, chia đều theo số đêm rơi vào từng tháng. Booking Giữ chỗ chưa tính.</li>
+    <li><b>Giá vốn căn thuê lại</b> = tiền thuê nhà/tháng, tính theo số ngày hợp đồng còn hiệu lực trong tháng.</li>
+    <li><b>Giá vốn căn chủ nhà</b> = số đêm có khách × giá lấy vào/đêm (hoặc số nhập tay trong booking). Đêm khách chủ nhà không tính doanh thu và không tính vào đêm khả dụng.</li>
+    <li><b>Chi phí vận hành</b> = chi phí cố định/tháng của từng căn + các khoản nhập ở tab Chi phí.</li>
+  </ol></div></div>`;
+  return out;
+}
+
+/* trend chart (SVG, one axis, VND) */
+function niceTicks(min, max, count) {
+  if (max === min) max = min + 1;
+  const span = max - min, step0 = span / count, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const err = step0 / mag, step = (err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1) * mag;
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, out = [];
+  for (let v = lo; v <= hi + step / 2; v += step) out.push(Math.round(v));
+  return out;
+}
+function colPath(x, y0, y1, w) {
+  const top = Math.min(y0, y1), bot = Math.max(y0, y1), h = bot - top;
+  if (h < 0.5) return '';
+  const r = Math.min(4, h, w / 2);
+  if (y1 <= y0) return `M${x},${bot}V${top + r}Q${x},${top} ${x + r},${top}H${x + w - r}Q${x + w},${top} ${x + w},${top + r}V${bot}Z`;
+  return `M${x},${top}V${bot - r}Q${x},${bot} ${x + r},${bot}H${x + w - r}Q${x + w},${bot} ${x + w},${bot - r}V${top}Z`;
+}
+function drawTrend(el) {
+  const end = el.dataset.end, months = [];
+  let M = end;
+  for (let i = 0; i < 12; i++) { months.unshift(M); M = mPrev(M); }
+  const bks = allBk(), curM = ym(todayStr());
+  const data = months.map(m => { const t = summarize([m], bks).tot; return { M: m, net: t.net, cost: t.cost, profit: t.net - t.cost, fut: m > curM }; });
+  const W = Math.max(300, el.clientWidth), H = 260, pl = 52, pr = 8, pt = 12, pb = 30;
+  const vals = data.flatMap(d => [d.net, d.cost, d.profit]);
+  const ticks = niceTicks(Math.min(0, ...vals), Math.max(0, ...vals), 4);
+  const lo = ticks[0], hi = ticks[ticks.length - 1];
+  const y = v => pt + (hi - v) / (hi - lo || 1) * (H - pt - pb);
+  const bw = (W - pl - pr) / data.length, barW = Math.max(3, Math.min(14, (bw - 10) / 2));
+  let s = `<svg width="${W}" height="${H}" role="img" aria-label="Doanh thu thuần, tổng chi phí và lãi lỗ 12 tháng">`;
+  for (const tv of ticks) s += `<line x1="${pl}" x2="${W - pr}" y1="${y(tv)}" y2="${y(tv)}" stroke="var(${tv === 0 ? '--axis' : '--grid'})" stroke-width="1"/><text x="${pl - 6}" y="${y(tv) + 3.5}" text-anchor="end">${tv === 0 ? '0' : compact(tv)}</text>`;
+  const every = bw < 30 ? 2 : 1;
+  data.forEach((d, i) => {
+    const cx = pl + i * bw + bw / 2, op = d.fut ? ' opacity="0.45"' : '';
+    s += `<path d="${colPath(cx - barW - 1, y(0), y(d.net), barW)}" fill="var(--s1)"${op}/>`;
+    s += `<path d="${colPath(cx + 1, y(0), y(d.cost), barW)}" fill="var(--s2)"${op}/>`;
+    if (i % every === 0 || i === data.length - 1) {
+      const [yy, mm] = d.M.split('-');
+      s += `<text x="${cx}" y="${H - 12}" text-anchor="middle">T${+mm}</text>${+mm === 1 || i === 0 ? `<text x="${cx}" y="${H - 1}" text-anchor="middle">${yy}</text>` : ''}`;
+    }
+  });
+  const pts = data.map((d, i) => [pl + i * bw + bw / 2, y(d.profit)]);
+  s += `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="var(--s3)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((p, i) => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="${i === pts.length - 1 ? 5 : 3.5}" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/>`; });
+  data.forEach((d, i) => { s += `<rect x="${pl + i * bw}" y="${pt}" width="${bw}" height="${H - pt - pb}" fill="transparent" data-i="${i}"/>`; });
+  s += '</svg><div class="tip" hidden></div>';
+  el.innerHTML = s;
+  const tip = el.querySelector('.tip'), svg = el.querySelector('svg');
+  const show = i => {
+    const d = data[i];
+    tip.innerHTML = `<b>${mLabel(d.M)}${d.fut ? ' · dự kiến' : ''}</b><div><span><i style="background:var(--s1)"></i>Doanh thu thuần</span><span>${money(d.net)}</span></div><div><span><i style="background:var(--s2)"></i>Tổng chi phí</span><span>${money(d.cost)}</span></div><div><span><i style="background:var(--s3)"></i>Lãi/lỗ ròng</span><b class="${d.profit < 0 ? 'neg' : ''}" style="margin:0">${acc(d.profit)}</b></div>`;
+    tip.hidden = false;
+    const cx = pl + i * bw + bw / 2, tw = tip.offsetWidth;
+    tip.style.left = Math.min(W - tw - 4, Math.max(4, cx + 12 > W - tw ? cx - tw - 12 : cx + 12)) + 'px';
+    tip.style.top = '8px';
+  };
+  svg.addEventListener('mousemove', e => { const i = e.target.dataset && e.target.dataset.i; if (i != null) show(+i); });
+  svg.addEventListener('mouseleave', () => { tip.hidden = true; });
+  svg.addEventListener('click', e => { const i = e.target.dataset && e.target.dataset.i; if (i != null) show(+i); });
+}
+
+/* ---- Expenses tab ---- */
+function viewExp() {
+  const M = S.expMonth;
+  const list = Object.values(S.exp).filter(x => ym(x.date) === M).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const total = list.reduce((s, x) => s + (+x.amount || 0), 0);
+  let out = `<div class="toolbar">${monthNav('e', M)}<span class="spacer"></span><button class="btn primary" data-act="exp-new">${I.plus}Thêm chi phí</button></div>`;
+  out += `<div class="note" style="margin-bottom:14px">Tiền thuê nhà, tiền trả chủ nhà và <b>chi phí cố định/tháng</b> của từng căn được tính tự động, không cần nhập lại ở đây. Chỉ ghi các khoản phát sinh: điện nước theo hóa đơn, dọn phòng, sửa chữa, đồ dùng…</div>`;
+  if (!list.length) return out + `<div class="card empty"><h3>Chưa có chi phí trong ${mLabel(M).toLowerCase()}</h3><p>Bấm “Thêm chi phí” để ghi khoản đầu tiên.</p></div>`;
+  const aptName = id => (id && S.apts[id] ? esc(S.apts[id].name) : '<small>Chung</small>');
+  out += `<div class="card"><h3>${list.length} khoản <small>tổng ${money(total)} ₫</small></h3><div class="tscroll"><table class="t"><thead><tr><th>Ngày</th><th>Căn hộ</th><th>Hạng mục</th><th class="n">Số tiền</th><th>Ghi chú</th></tr></thead><tbody>
+    ${list.map(x => `<tr class="click${x.sample ? ' muted' : ''}" data-act="exp-edit" data-id="${esc(x._id)}" tabindex="0"><td>${DRE.test(x.date) ? dLabel(x.date) : ''}</td><td class="name">${aptName(x.aptId)}</td><td>${esc(x.cat)}</td><td class="n">${money(x.amount)}</td><td class="name">${esc(x.note || '')}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+  return out;
+}
+
+/* ---- Apartments & hosts tab ---- */
+function viewApts() {
+  const apts = listApts();
+  let out = `<div class="toolbar"><span class="spacer"></span><button class="btn" data-act="host-new">${I.user}Thêm chủ nhà</button><button class="btn primary" data-act="apt-new">${I.plus}Thêm căn hộ</button></div>`;
+  out += `<div class="card"><h3>Căn hộ <small>${apts.length} căn · giá chỉ bạn thấy</small></h3>`;
+  if (!apts.length) out += '<p class="hint">Chưa có căn hộ nào.</p>';
+  else out += `<div class="tscroll"><table class="t"><thead><tr><th>Căn hộ</th><th>Loại</th><th>Chủ nhà</th><th class="n">Giá vốn</th><th class="n">Giá bán gợi ý/đêm</th><th class="n">CP cố định/tháng</th><th>Trạng thái</th></tr></thead><tbody>
+    ${apts.map(a => `<tr class="click${a.sample ? ' muted' : ''}" data-act="apt-edit" data-id="${esc(a._id)}" tabindex="0"><td class="name">${esc(a.name)}${a.code ? ` <small>${esc(a.code)}</small>` : ''}</td>
+      <td>${a.kind === 'managed' ? '<span class="tag">vận hành cho chủ nhà</span>' : '<span class="tag l">thuê lại</span>'}</td>
+      <td>${a.kind === 'managed' ? hostName(a.hostId) : '–'}</td>
+      <td class="n">${a.kind === 'managed' ? money(a.onight) + ' /đêm' : money(a.rent) + ' /tháng'}</td>
+      <td class="n">${money(a.snight)}</td><td class="n">${money(a.fixed)}</td>
+      <td>${a.active === false ? '<span class="tag">ngừng</span>' : 'Đang hoạt động'}${a.sample ? ' <span class="tag s">mẫu</span>' : ''}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  out += '</div>';
+  const hosts = Object.values(S.hosts).sort((a, b) => String(a.label).localeCompare(String(b.label), 'vi'));
+  out += `<div class="cols even" style="margin-top:16px"><div class="card"><h3>Tài khoản chủ nhà <small>${hosts.length}</small></h3>`;
+  if (!hosts.length) out += `<p class="hint" style="margin-top:0">Chưa có chủ nhà nào. Bấm “Thêm chủ nhà” để tạo tên đăng nhập và mật khẩu cho họ.</p>`;
+  else out += `<div class="tscroll"><table class="t"><thead><tr><th>Chủ nhà</th><th>Tên đăng nhập</th><th>SĐT</th><th class="n">Số căn</th></tr></thead><tbody>${hosts.map(h => `<tr class="click" data-act="host-edit" data-id="${esc(h._id)}" tabindex="0"><td class="name">${esc(h.label)}${h.active === false ? ' <span class="tag">đã khóa</span>' : ''}</td><td>${esc(h._id)}</td><td>${esc(h.phone || '')}</td><td class="n">${apts.filter(a => a.hostId === h._id).length}</td></tr>`).join('')}</tbody></table></div>`;
+  out += `</div><div class="card"><h3>Chia sẻ app</h3><ol class="steps">
+    <li><b>Người chỉ xem:</b> gửi link app. Họ mở ra là thấy Bảng chung, không cần đăng nhập.</li>
+    <li><b>Chủ nhà:</b> bấm “Thêm chủ nhà” để tạo tên đăng nhập và mật khẩu, rồi mở căn hộ của họ và chọn chủ nhà. Gửi họ link app cùng tên đăng nhập, mật khẩu.</li>
+    <li>Chủ nhà chỉ thấy và sửa lịch căn của họ, không thấy giá hay báo cáo. Khóa tài khoản bất cứ lúc nào bằng cách bỏ chọn “Đang hoạt động”.</li>
+    <li>Toàn bộ dữ liệu nằm trong Google Sheet của bạn${S.sheetUrl ? ` (<a href="${esc(S.sheetUrl)}" target="_blank" rel="noopener">mở</a>)` : ''}. Đừng đổi tên các trang và tiêu đề cột.</li>
+  </ol></div></div>`;
+  const nSample = apts.filter(a => a.sample).length;
+  if (nSample) out += `<div class="card" style="margin-top:16px"><h3>Dữ liệu mẫu</h3><p style="margin:0 0 12px;color:var(--ink-2)">Các căn tên “MẪU · …” cùng booking và chi phí đi kèm chỉ để xem app chạy thế nào. Xóa khi bạn bắt đầu nhập dữ liệu thật.</p><button class="btn danger" data-act="clear-sample" data-label="Xóa toàn bộ dữ liệu mẫu">Xóa toàn bộ dữ liệu mẫu</button></div>`;
+  return out;
+}
+
+/* ---------- modal plumbing ---------- */
+function openModal(html, state) {
+  MS = state;
+  $('#sheet').innerHTML = html;
+  $('#modal').hidden = false;
+  document.body.classList.add('noscroll');
+  if (MS && MS.recalc) MS.recalc({});
+  const first = $('#sheet').querySelector('input:not([type=radio]):not([type=checkbox]):not([disabled]), select, textarea');
+  if (first && matchMedia('(pointer:fine)').matches) first.focus();
+}
+function closeModal() { $('#modal').hidden = true; $('#sheet').innerHTML = ''; document.body.classList.remove('noscroll'); MS = null; }
+function showErr(m) { const e = $('#m-err'); if (e) { e.textContent = m; e.hidden = false; } }
+function busy(on) {
+  const b = $('#sheet [data-m="save"]');
+  if (!b) return;
+  if (!b.dataset.label) b.dataset.label = b.textContent;
+  b.disabled = on; b.textContent = on ? 'Đang lưu…' : b.dataset.label;
+}
+function armed(btn, text) {
+  if (btn.dataset.armed) return true;
+  if (!btn.dataset.label) btn.dataset.label = btn.textContent;
+  btn.dataset.armed = '1'; btn.textContent = text || 'Bấm lần nữa để xác nhận';
+  setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.textContent = btn.dataset.label; } }, 4000);
+  return false;
+}
+const val = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+const radio = name => { const e = document.querySelector(`input[name="${name}"]:checked`); return e ? e.value : ''; };
+let tt = 0;
+function toast(msg, kind) { const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (kind === 'err' ? ' err' : ''); t.hidden = false; clearTimeout(tt); tt = setTimeout(() => { t.hidden = true; }, 3600); }
+/** Gọi máy chủ khi bấm Lưu: khóa nút, báo lỗi trong hộp thoại, tải lại dữ liệu khi xong. */
+async function submit(fn, okMsg) {
+  busy(true);
+  try { await fn(); await loadAll(true); closeModal(); if (okMsg) toast(okMsg); }
+  catch (e) { busy(false); showErr(errMsg(e)); if (!TOKEN) closeModal(); }
+}
+const actions = (del, saveLabel) => `<p class="err" id="m-err" hidden></p><div class="actions">${del || ''}<button class="btn" data-m="close">Hủy</button><button class="btn primary" data-m="save">${saveLabel || 'Lưu'}</button></div>`;
+
+/* ---- login / account ---- */
+function openLogin() {
+  openModal(`<h3>Đăng nhập</h3><p style="margin:-6px 0 14px;color:var(--ink-2)">Dành cho quản lý và chủ nhà. Người chỉ xem không cần đăng nhập.</p><div class="form">
+    <label class="f full">Tên đăng nhập<input class="in" id="l-user" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+    <label class="f full">Mật khẩu<input class="in" id="l-pw" type="password" autocomplete="current-password"></label>
+  </div>${actions('', 'Đăng nhập')}`, { type: 'login', save: doLogin });
+}
+async function doLogin() {
+  const u = val('l-user').trim(), p = val('l-pw');
+  if (!u || !p) return showErr('Nhập tên đăng nhập và mật khẩu.');
+  busy(true);
+  try {
+    const r = await api('login', u, p);
+    setToken(r.token);
+    S.tab = 'cal'; S.scrollToday = true;
+    await loadAll();
+    closeModal(); toast('Đã đăng nhập');
+  } catch (e) { busy(false); showErr(parseErr(e).msg); }
+}
+async function doLogout() {
+  const t = TOKEN;
+  setToken(null); resetPrivate(); S.tab = 'board'; schedule();
+  try { await api('logout', t); } catch (e) { /* bỏ qua */ }
+  toast('Đã đăng xuất');
+}
+function openPw() {
+  openModal(`<h3>Đổi mật khẩu</h3><div class="form">
+    <label class="f full">Mật khẩu hiện tại<input class="in" id="p-old" type="password" autocomplete="current-password"></label>
+    <label class="f full">Mật khẩu mới<input class="in" id="p-new" type="password" autocomplete="new-password"><small>${S.role === 'admin' ? 'Ít nhất 8 ký tự' : 'Ít nhất 6 ký tự'}</small></label>
+  </div>${actions()}`, { type: 'pw', save: () => submit(() => api('changePassword', TOKEN, val('p-old'), val('p-new')), 'Đã đổi mật khẩu') });
+}
+
+/* ---- booking ---- */
+function openBooking(o) {
+  const admin = S.role === 'admin';
+  const apts = listApts().filter(a => !admin || a.active !== false || a._id === o.aptId);
+  if (!apts.length) { toast('Chưa có căn hộ nào', 'err'); return; }
+  let b, f = {};
+  if (o.id) { b = allBk().find(x => x._id === o.id); if (!b) return; f = finOf(o.id); if (!admin && b.lock) return openBookingView(b); }
+  else {
+    const d = o.d || todayStr();
+    b = { aptId: o.aptId || apts[0]._id, ci: d, co: addDays(d, 1), st: admin ? 'hold' : 'owner', guest: '', pax: '', note: '' };
+  }
+  const chs = S.cfg.channels;
+  const ch = f.channel || (chs[0] && chs[0].name) || '';
+  const fee = f.feePct != null && f.feePct !== '' ? f.feePct : ((chs.find(c => c.name === ch) || {}).fee || 0);
+  const hasOc = f.ocost !== null && f.ocost !== undefined && f.ocost !== '';
+  const fin = admin ? `<div class="finbox" id="b-fin"><h4>${I.lock}Tài chính · chỉ bạn thấy</h4>
+      <label class="f">Kênh bán<select class="in" id="b-ch">${chs.map(c => `<option${c.name === ch ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}${ch && !chs.some(c => c.name === ch) ? `<option selected>${esc(ch)}</option>` : ''}</select></label>
+      <label class="f">Phí kênh (%)<input class="in" type="number" step="0.1" min="0" max="100" id="b-fee" value="${esc(fee)}"></label>
+      <label class="f">Giá bán ra (tổng tiền phòng, ₫)<input class="in money" inputmode="numeric" id="b-total" value="${f.total ? money(f.total) : ''}"><small id="b-pn"></small></label>
+      <label class="f">Khách đã trả (₫)<input class="in money" inputmode="numeric" id="b-paid" value="${f.paid ? money(f.paid) : ''}"><small>Nhập số tiền, trạng thái sẽ tự gợi ý</small></label>
+      <label class="f" id="b-oc-wrap">Giá lấy vào – trả chủ nhà (₫)<input class="in money" inputmode="numeric" id="b-oc" placeholder="Tự tính" value="${hasOc ? money(f.ocost) : ''}"><small id="b-och"></small></label>
+      <label class="f">SĐT khách<input class="in" id="b-phone" inputmode="tel" value="${esc(f.phone || '')}"></label>
+      <div class="calc" id="b-calc"></div></div>` : '';
+  const html = `<h3>${o.id ? 'Sửa booking' : 'Booking mới'}</h3><div class="form">
+    <label class="f full">Căn hộ<select class="in" id="b-apt">${apts.map(a => `<option value="${esc(a._id)}"${a._id === b.aptId ? ' selected' : ''}>${esc(a.name)}</option>`).join('')}</select></label>
+    <label class="f">Nhận phòng<input class="in" type="date" id="b-ci" value="${b.ci}"></label>
+    <label class="f">Trả phòng<input class="in" type="date" id="b-co" value="${b.co}"></label>
+    <div class="f full"><span>Trạng thái · <b id="b-nights"></b></span><div class="seg"${admin ? '' : ' style="grid-template-columns:minmax(0,1fr)"'}>${(admin ? ST_ORDER : ['owner']).map(k => `<label><input type="radio" name="b-st" value="${k}"${(admin ? b.st : 'owner') === k ? ' checked' : ''}><i class="sw st-${k}"></i>${ST[k].label}</label>`).join('')}</div>${admin ? '' : '<small>Chủ nhà chỉ tạo được booking khách của chủ nhà.</small>'}</div>
+    <label class="f">Tên khách<input class="in" id="b-guest" maxlength="120" value="${esc(b.guest || '')}" placeholder="VD: Chị Lan"></label>
+    <label class="f">Số khách<input class="in" id="b-pax" type="number" min="0" value="${esc(b.pax || '')}"></label>
+    <label class="f full">Ghi chú<textarea class="in" id="b-note" rows="2" maxlength="1000">${esc(b.note || '')}</textarea></label>
+    ${fin}</div>
+    ${o.id && b.by ? `<p class="meta">${b.createdBy ? `Tạo bởi ${esc(who(b.createdBy))} · ` : ''}Cập nhật ${fmtTime(b.at)} bởi ${esc(who(b.by))}${admin && b.createdBy && b.createdBy !== 'quanly' && b.st === 'owner' ? ' · chủ nhà sửa được booking này' : ''}</p>` : ''}
+    ${actions(o.id ? `<button class="btn danger left" data-m="del">Xóa booking</button>` : '')}`;
+  openModal(html, { type: 'bk', admin, b, totalTouched: !!f.total, recalc: bkRecalc, save: bkSave, del: bkDelete });
+}
+/** Chủ nhà xem booking do quản lý tạo: chỉ đọc, không có nút lưu/xóa. */
+function openBookingView(b) {
+  const a = S.apts[b.aptId] || {};
+  const row = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
+  openModal(`<h3>Chi tiết booking</h3>
+    <div class="note" style="margin-bottom:14px;display:flex;gap:8px;align-items:flex-start">${I.lock}<span>${b.mine ? 'Booking này đã được quản lý đổi trạng thái' : 'Booking này do quản lý tạo, thông tin khách được ẩn'}. Bạn chỉ xem được, không sửa hay xóa được. Cần thay đổi, hãy liên hệ quản lý.</span></div>
+    <dl class="kv">
+      ${row('Căn hộ', esc(a.name || ''))}
+      ${row('Nhận phòng', dLabel(b.ci) + '/' + b.ci.slice(0, 4))}
+      ${row('Trả phòng', dLabel(b.co) + '/' + b.co.slice(0, 4))}
+      ${row('Số đêm', `${diff(b.ci, b.co)} đêm (đêm ${dLabel(b.ci)} → đêm ${dLabel(addDays(b.co, -1))})`)}
+      ${row('Trạng thái', `<i class="sw st-${b.st}" style="vertical-align:-1px;margin-right:6px"></i>${ST[b.st].label}`)}
+      ${b.guest ? row('Khách', esc(b.guest)) : ''}
+      ${b.pax ? row('Số khách', esc(b.pax)) : ''}
+      ${b.note ? row('Ghi chú', esc(b.note)) : ''}
+    </dl>
+    <div class="actions"><button class="btn primary" data-m="close">Đóng</button></div>`, { type: 'view' });
+}
+function bkRecalc(ev) {
+  const id = ev.target && ev.target.id;
+  const apt = S.apts[val('b-apt')] || {};
+  const ci = val('b-ci');
+  if (id === 'b-ci' && DRE.test(ci) && !(val('b-co') > ci)) $('#b-co').value = addDays(ci, 1);
+  const co = val('b-co');
+  const n = DRE.test(ci) && DRE.test(co) ? diff(ci, co) : 0;
+  $('#b-nights').textContent = n > 0 ? `${n} đêm (đêm ${dLabel(ci)} → đêm ${dLabel(addDays(co, -1))}, trả phòng ${dLabel(co)})` : 'ngày trả phải sau ngày nhận';
+  if (!MS.admin) return;
+  let st = radio('b-st');
+  $('#b-fin').hidden = st === 'owner';
+  if (id === 'b-total') MS.totalTouched = !!val('b-total');
+  if (id === 'b-ch') { const c = S.cfg.channels.find(c => c.name === val('b-ch')); if (c) $('#b-fee').value = c.fee; }
+  if (!MS.totalTouched && apt.snight && n > 0 && (id === 'b-apt' || id === 'b-ci' || id === 'b-co' || id === undefined)) $('#b-total').value = money(apt.snight * n);
+  const total = pm(val('b-total')), paid = pm(val('b-paid')), fee = +val('b-fee') || 0;
+  if (id === 'b-paid' && st !== 'owner') {
+    const want = total > 0 && paid >= total ? 'paid' : paid > 0 ? 'deposit' : null;
+    if (want) { const r = document.querySelector(`input[name="b-st"][value="${want}"]`); if (r) { r.checked = true; st = want; } }
+  }
+  const managed = apt.kind === 'managed';
+  $('#b-oc-wrap').hidden = !managed;
+  const ocAuto = n * (+apt.onight || 0), ocRaw = val('b-oc').trim();
+  const oc = managed ? (ocRaw ? pm(ocRaw) : ocAuto) : 0;
+  $('#b-och').textContent = managed ? (ocRaw ? 'Đã nhập tay · xóa trống để tự tính' : `Tự tính: ${n} đêm × ${money(apt.onight)} = ${money(ocAuto)}`) : '';
+  $('#b-pn').textContent = n > 0 && total ? `≈ ${money(total / n)} ₫/đêm${apt.snight ? ' · gợi ý ' + money(apt.snight) : ''}` : (apt.snight ? `Giá gợi ý ${money(apt.snight)} ₫/đêm` : '');
+  const feeAmt = total * fee / 100;
+  const cell = (l, v, cls) => `<div>${l}<b class="${cls || ''}">${acc(v)}</b></div>`;
+  $('#b-calc').innerHTML = cell('Còn phải thu', total - paid, total - paid > 0 ? '' : 'pos') + cell('Phí kênh', feeAmt)
+    + (managed ? cell('Trả chủ nhà', oc) + cell('Lãi booking', total - feeAmt - oc, total - feeAmt - oc < 0 ? 'neg' : 'pos')
+      : cell('Thu thuần (sau phí kênh)', total - feeAmt));
+}
+function bkSave() {
+  const old = MS.b;
+  const aptId = val('b-apt'), ci = val('b-ci'), co = val('b-co'), st = radio('b-st');
+  if (!DRE.test(ci) || !DRE.test(co) || co <= ci) return showErr('Ngày trả phòng phải sau ngày nhận phòng.');
+  if (!ST[st]) return showErr('Chọn trạng thái booking.');
+  const ap = S.apts[aptId];
+  if (!old._id || old.ci !== ci || old.co !== co || old.aptId !== aptId) {
+    if (ap && DRE.test(ap.start || '') && ci < ap.start) return showErr(`Căn này chỉ nhận khách từ đêm ${dLabel(ap.start)}/${ap.start.slice(0, 4)}. Trước ngày đó căn chưa thuê / chưa nhận vận hành.`);
+    if (ap && DRE.test(ap.end || '') && addDays(co, -1) > ap.end) return showErr(`Căn này chỉ nhận khách đến hết đêm ${dLabel(ap.end)}/${ap.end.slice(0, 4)} (ngày kết thúc hợp đồng).`);
+  }
+  const clash = allBk().find(x => x.aptId === aptId && x._id !== old._id && x.ci < co && x.co > ci);
+  if (clash) return showErr(`Trùng lịch với booking ${dLabel(clash.ci)} → ${dLabel(clash.co)}${clash.guest ? ' (' + clash.guest + ')' : ''}.`);
+  const b = { id: old._id || '', aptId, ci, co, st, guest: val('b-guest').trim(), pax: +val('b-pax') || 0, note: val('b-note').trim() };
+  let f = null;
+  if (MS.admin && st !== 'owner') {
+    const apt = S.apts[aptId] || {}, ocRaw = val('b-oc').trim();
+    f = { channel: val('b-ch'), feePct: +val('b-fee') || 0, total: pm(val('b-total')), paid: pm(val('b-paid')), ocost: apt.kind === 'managed' && ocRaw ? pm(ocRaw) : null, phone: val('b-phone').trim() };
+  }
+  return submit(() => api('saveBooking', TOKEN, b, f), 'Đã lưu booking');
+}
+function bkDelete(btn) {
+  if (!armed(btn, 'Bấm lần nữa để xóa')) return;
+  return submit(() => api('deleteBooking', TOKEN, MS.b._id), 'Đã xóa booking');
+}
+
+/* ---- apartment ---- */
+function openApt(id) {
+  const a = id ? S.apts[id] : { kind: 'leased', active: true, order: listApts().length + 1 };
+  if (!a) return;
+  const hosts = Object.values(S.hosts);
+  const kind = a.kind === 'managed' ? 'managed' : 'leased';
+  const html = `<h3>${id ? 'Sửa căn hộ' : 'Thêm căn hộ'}</h3><div class="form">
+    <label class="f full">Tên căn hộ<input class="in" id="a-name" maxlength="80" value="${esc(a.name || '')}" placeholder="VD: Studio Bến Thành 12A"></label>
+    <label class="f">Mã căn<input class="in" id="a-code" maxlength="30" value="${esc(a.code || '')}" placeholder="VD: BT-1203"></label>
+    <label class="f">Địa chỉ / khu vực<input class="in" id="a-addr" maxlength="160" value="${esc(a.address || '')}"></label>
+    <div class="f full"><span>Loại căn</span><div class="seg two"><label><input type="radio" name="a-kind" value="leased"${kind === 'leased' ? ' checked' : ''}>Tôi thuê lại để vận hành</label><label><input type="radio" name="a-kind" value="managed"${kind === 'managed' ? ' checked' : ''}>Vận hành cho chủ nhà</label></div></div>
+    <div class="finbox"><h4>${I.lock}Giá & chi phí · chỉ bạn thấy</h4>
+      <label class="f" data-k="leased">Tiền thuê nhà/tháng (₫)<input class="in money" inputmode="numeric" id="a-rent" value="${a.rent ? money(a.rent) : ''}"></label>
+      <label class="f" data-k="managed">Giá lấy vào/đêm – trả chủ nhà (₫)<input class="in money" inputmode="numeric" id="a-onight" value="${a.onight ? money(a.onight) : ''}"></label>
+      <label class="f">Giá bán gợi ý/đêm (₫)<input class="in money" inputmode="numeric" id="a-snight" value="${a.snight ? money(a.snight) : ''}"></label>
+      <label class="f full">Chi phí cố định/tháng (₫)<input class="in money" inputmode="numeric" id="a-fixed" value="${a.fixed ? money(a.fixed) : ''}"><small>Internet, phí quản lý tòa nhà… tự cộng vào chi phí vận hành mỗi tháng</small></label>
+    </div>
+    <label class="f full" data-k="managed">Chủ nhà<select class="in" id="a-host"><option value="">Chưa gán (chỉ bạn sửa lịch)</option>${hosts.map(h => `<option value="${esc(h._id)}"${h._id === a.hostId ? ' selected' : ''}>${esc(h.label)} (${esc(h._id)})${h.active === false ? ' · đã khóa' : ''}</option>`).join('')}</select><small>${hosts.length ? 'Chủ nhà được gán sẽ tự sửa được lịch căn này.' : 'Chưa có tài khoản chủ nhà – tạo ở nút “Thêm chủ nhà”.'}</small></label>
+    <label class="f"><span data-k2="leased">Ngày bắt đầu thuê</span><span data-k2="managed">Ngày bắt đầu hợp tác</span><input class="in" type="date" id="a-start" value="${esc(a.start || '')}"></label>
+    <label class="f">Ngày kết thúc (nếu có)<input class="in" type="date" id="a-end" value="${esc(a.end || '')}"><small>Đêm cuối cùng còn nhận khách</small></label>
+    <p class="full" style="margin:-4px 0 0;font-size:12px;color:var(--muted)">Trước ngày bắt đầu và sau ngày kết thúc, lịch tô xám, không đặt phòng được và không tính vào đêm khả dụng khi tính công suất.</p>
+    <label class="f">Thứ tự hiển thị<input class="in" type="number" id="a-order" value="${esc(a.order ?? '')}"></label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:8px;margin-top:20px"><input type="checkbox" id="a-active"${a.active !== false ? ' checked' : ''}>Đang hoạt động</label>
+  </div>${actions(id ? `<button class="btn danger left" data-m="del">Xóa căn</button>` : '')}`;
+  openModal(html, { type: 'apt', a: Object.assign({ _id: id }, a), recalc: aptRecalc, save: aptSave, del: aptDelete });
+}
+function aptRecalc() {
+  const k = radio('a-kind');
+  document.querySelectorAll('#sheet [data-k]').forEach(e => { e.hidden = e.dataset.k !== k; });
+  document.querySelectorAll('#sheet [data-k2]').forEach(e => { e.hidden = e.dataset.k2 !== k; });
+}
+function aptSave() {
+  const name = val('a-name').trim();
+  if (!name) return showErr('Nhập tên căn hộ.');
+  const kind = radio('a-kind') === 'managed' ? 'managed' : 'leased';
+  const data = {
+    id: MS.a._id || '', name, code: val('a-code').trim(), address: val('a-addr').trim(), kind,
+    hostId: kind === 'managed' ? val('a-host') : '', rent: pm(val('a-rent')), onight: pm(val('a-onight')),
+    snight: pm(val('a-snight')), fixed: pm(val('a-fixed')), start: val('a-start'), end: val('a-end'),
+    order: +val('a-order') || 0, active: $('#a-active').checked,
+  };
+  return submit(() => api('saveApt', TOKEN, data), 'Đã lưu căn hộ');
+}
+function aptDelete(btn) {
+  const n = allBk().filter(b => b.aptId === MS.a._id).length;
+  if (n) return showErr(`Căn này có ${n} booking. Hãy bỏ chọn “Đang hoạt động” thay vì xóa, để giữ số liệu báo cáo.`);
+  if (!armed(btn, 'Bấm lần nữa để xóa căn')) return;
+  return submit(() => api('deleteApt', TOKEN, MS.a._id), 'Đã xóa căn hộ');
+}
+
+/* ---- host accounts ---- */
+function openHost(id) {
+  const h = id ? S.hosts[id] : { active: true };
+  if (!h) return;
+  const html = `<h3>${id ? 'Sửa tài khoản chủ nhà' : 'Thêm chủ nhà'}</h3><div class="form">
+    <label class="f full">Tên chủ nhà<input class="in" id="h-label" maxlength="80" value="${esc(h.label || '')}" placeholder="VD: Anh Tuấn – căn PMH"></label>
+    <label class="f">Tên đăng nhập<input class="in" id="h-id" maxlength="30" autocapitalize="none" spellcheck="false" value="${esc(id || '')}"${id ? ' disabled' : ''} placeholder="VD: tuan.pmh"><small>Chữ không dấu, số, dấu chấm/gạch</small></label>
+    <label class="f">Số điện thoại<input class="in" id="h-phone" inputmode="tel" maxlength="20" value="${esc(h.phone || '')}"></label>
+    <label class="f full">${id ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu'}<input class="in" id="h-pw" type="text" autocomplete="off" spellcheck="false"><small>Ít nhất 6 ký tự. Gửi mật khẩu này cho chủ nhà; họ tự đổi được sau khi đăng nhập.</small></label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="h-active"${h.active !== false ? ' checked' : ''}>Đang hoạt động (bỏ chọn để khóa)</label>
+  </div>${actions(id ? `<button class="btn danger left" data-m="del">Xóa tài khoản</button>` : '')}`;
+  openModal(html, { type: 'host', id, save: hostSave, del: hostDelete });
+}
+function hostSave() {
+  const isNew = !MS.id, id = isNew ? val('h-id').trim().toLowerCase() : MS.id, pw = val('h-pw');
+  if (!/^[a-z0-9._-]{3,30}$/.test(id)) return showErr('Tên đăng nhập 3–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm hoặc gạch.');
+  if ((isNew || pw) && pw.length < 6) return showErr('Mật khẩu ít nhất 6 ký tự.');
+  const h = { id, label: val('h-label').trim(), phone: val('h-phone').trim(), password: pw, active: $('#h-active').checked };
+  return submit(() => api('saveHost', TOKEN, h, isNew), isNew ? 'Đã tạo tài khoản chủ nhà' : 'Đã lưu');
+}
+function hostDelete(btn) {
+  const n = listApts().filter(a => a.hostId === MS.id).length;
+  if (n) return showErr(`Chủ nhà này đang được gán ${n} căn. Hãy đổi chủ nhà của các căn đó trước, hoặc chỉ khóa tài khoản.`);
+  if (!armed(btn, 'Bấm lần nữa để xóa')) return;
+  return submit(() => api('deleteHost', TOKEN, MS.id), 'Đã xóa tài khoản');
+}
+
+/* ---- expense ---- */
+function openExp(id) {
+  const x = id ? S.exp[id] : { date: S.expMonth === ym(todayStr()) ? todayStr() : mFirst(S.expMonth), cat: CATS[0], aptId: '' };
+  if (!x) return;
+  const html = `<h3>${id ? 'Sửa chi phí' : 'Thêm chi phí'}</h3><div class="form">
+    <label class="f">Ngày<input class="in" type="date" id="e-date" value="${esc(x.date || '')}"></label>
+    <label class="f">Số tiền (₫)<input class="in money" inputmode="numeric" id="e-amt" value="${x.amount ? money(x.amount) : ''}"></label>
+    <label class="f">Căn hộ<select class="in" id="e-apt"><option value="">Chung (không riêng căn nào)</option>${listApts().map(a => `<option value="${esc(a._id)}"${a._id === x.aptId ? ' selected' : ''}>${esc(a.name)}</option>`).join('')}</select></label>
+    <label class="f">Hạng mục<select class="in" id="e-cat">${CATS.map(c => `<option${c === x.cat ? ' selected' : ''}>${c}</option>`).join('')}</select></label>
+    <label class="f full">Ghi chú<input class="in" id="e-note" maxlength="300" value="${esc(x.note || '')}" placeholder="VD: Hóa đơn điện tháng 9"></label>
+  </div>${actions(id ? `<button class="btn danger left" data-m="del">Xóa</button>` : '')}`;
+  openModal(html, { type: 'exp', id, save: expSave, del: expDelete });
+}
+function expSave() {
+  const date = val('e-date'), amount = pm(val('e-amt'));
+  if (!DRE.test(date)) return showErr('Chọn ngày.');
+  if (!amount) return showErr('Nhập số tiền.');
+  const x = { id: MS.id || '', date, amount, aptId: val('e-apt'), cat: val('e-cat'), note: val('e-note').trim() };
+  S.expMonth = ym(date);
+  return submit(() => api('saveExp', TOKEN, x), 'Đã lưu chi phí');
+}
+function expDelete(btn) {
+  if (!armed(btn, 'Bấm lần nữa để xóa')) return;
+  return submit(() => api('deleteExp', TOKEN, MS.id), 'Đã xóa chi phí');
+}
+
+/* ---- settings ---- */
+const chRow = c => `<div class="chrow"><input class="in" data-ch="name" maxlength="40" value="${esc(c.name)}" placeholder="Tên kênh" aria-label="Tên kênh"><input class="in" data-ch="fee" type="number" step="0.1" min="0" max="100" value="${esc(c.fee)}" aria-label="Phí %"><button class="btn ghost" data-m="rmch" aria-label="Bỏ kênh">✕</button></div>`;
+function openSettings() {
+  openModal(`<h3>Cài đặt</h3><div class="form">
+    <div class="f full"><span>Kênh bán & phí mặc định (%)</span><div id="chs" style="display:grid;gap:6px">${S.cfg.channels.map(chRow).join('')}</div><button class="btn ghost" data-m="addch" style="justify-self:start">${I.plus}Thêm kênh</button></div>
+    <label class="f full">Thuế khoán ước tính (% doanh thu phòng)<input class="in" type="number" step="0.1" min="0" max="100" id="s-tax" value="${esc(S.cfg.taxPct || 0)}"><small>Để 0 nếu không muốn trừ thuế trong báo cáo. Tỷ lệ tùy cách bạn đăng ký kinh doanh – nên xác nhận với kế toán thuế.</small></label>
+  </div>${actions()}`, { type: 'cfg', save: cfgSave });
+}
+function cfgSave() {
+  const channels = [...document.querySelectorAll('#chs .chrow')].map(r => ({ name: r.querySelector('[data-ch=name]').value.trim(), fee: Math.max(0, +r.querySelector('[data-ch=fee]').value || 0) })).filter(c => c.name);
+  if (!channels.length) return showErr('Cần ít nhất một kênh bán.');
+  return submit(() => api('saveCfg', TOKEN, { channels, taxPct: Math.max(0, +val('s-tax') || 0) }), 'Đã lưu cài đặt');
+}
+
+/* ---- export report to Google Sheet ---- */
+async function exportFin(btn) {
+  const p = S.per, months = perMonths(p), bks = allBk(), A = summarize(months, bks), t = A.tot;
+  const num = v => (isFinite(v) ? Math.round(v) : ''), rat = v => (isFinite(v) ? v : '');
+  const stmt = [['Khoản mục', 'Số tiền (VND)', '% DT thuần']].concat(stmtLines(A).map(l => [l.label, num(l.v), t.net ? l.v / t.net : '']));
+  const kpi = [['Chỉ số', 'Giá trị'], ['Đêm đã bán', t.sold], ['Đêm khả dụng', t.availNet], ['Công suất phòng (%)', isFinite(t.occ) ? Math.round(t.occ * 1000) / 10 : ''], ['Giá TB/đêm (ADR)', num(t.adr)], ['RevPAR', t.availNet ? num(t.gross / t.availNet) : ''], ['Khách còn nợ', num(t.receivable)], ['Đêm đang giữ chỗ', t.held]];
+  const per = [['Căn hộ', 'Loại', 'Đêm bán', 'Đêm khả dụng', 'Công suất', 'ADR', 'Doanh thu phòng', 'Phí kênh', 'DT thuần', 'Giá vốn', 'Lãi gộp', 'CP vận hành', 'Lãi/lỗ', 'Biên LN']];
+  for (const r of A.rows) per.push([r.name, r.kind === 'managed' ? 'Chủ nhà' : 'Thuê lại', r.sold, r.availNet, rat(r.occ), num(r.adr), num(r.gross), num(r.fee), num(r.net), num(r.cogs), num(r.gp), num(r.opex), num(r.profit), rat(r.margin)]);
+  if (A.common) per.push(['Chi phí chung', '', '', '', '', '', '', '', '', '', '', num(A.common), num(-A.common), '']);
+  per.push(['TỔNG', '', t.sold, t.availNet, rat(t.occ), num(t.adr), num(t.gross), num(t.fee), num(t.net), num(t.cogs), num(t.gp), num(t.opex + A.common), num(t.pre), rat(t.net ? t.pre / t.net : NaN)]);
+  const s = mFirst(months[0]), e = mFirst(mNext(months[months.length - 1]));
+  const bk = [['Căn hộ', 'Nhận phòng', 'Trả phòng', 'Đêm', 'Đêm trong kỳ', 'Trạng thái', 'Khách', 'Kênh', 'Giá bán ra', 'Đã thu', 'Còn phải thu']];
+  for (const b of bks.filter(b => b.ci < e && b.co > s).sort((x, y) => (x.ci < y.ci ? -1 : 1))) {
+    const a = S.apts[b.aptId] || {}, f = finOf(b._id);
+    bk.push([a.name || '', b.ci, b.co, diff(b.ci, b.co), overlapN(b.ci, b.co, s, e), ST[b.st].label, b.guest || '', f.channel || '', +f.total || '', +f.paid || '', f.total ? Math.max(0, f.total - (f.paid || 0)) : '']);
+  }
+  const title = `Báo cáo ${perLabel(p).replace('Tháng ', 'T')}`;
+  btn.disabled = true; toast('Đang ghi báo cáo vào Google Sheet…');
+  try {
+    const r = await api('exportReport', TOKEN, title, [
+      { title: `Kết quả kinh doanh – ${perLabel(p)}`, rows: stmt, pct: [2] },
+      { title: 'Chỉ số vận hành', rows: kpi },
+      { title: 'Lãi lỗ theo căn', rows: per, pct: [4, 13] },
+      { title: 'Booking trong kỳ', rows: bk },
+    ]);
+    openModal(`<h3>Đã xuất báo cáo</h3><p style="margin:0 0 12px;color:var(--ink-2)">Báo cáo nằm ở trang <b>${esc(r.name)}</b> trong Google Sheet của bạn. Muốn có file Excel: mở trang đó → <b>Tệp → Tải xuống → Microsoft Excel (.xlsx)</b>.</p><div class="actions"><button class="btn" data-m="close">Đóng</button><a class="btn primary" href="${esc(r.url)}" target="_blank" rel="noopener">${I.ext}Mở báo cáo</a></div>`, { type: 'info' });
+  } catch (err) { toast(errMsg(err), 'err'); }
+  finally { if (btn.isConnected) btn.disabled = false; }
+}
+async function clearSample(btn) {
+  if (!armed(btn, 'Bấm lần nữa để xóa hết dữ liệu mẫu')) return;
+  btn.disabled = true;
+  try { await api('clearSample', TOKEN); await loadAll(true); toast('Đã xóa dữ liệu mẫu'); }
+  catch (e) { toast(errMsg(e), 'err'); btn.disabled = false; }
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || !$('#app').contains(el)) return;
+  const a = el.dataset.act, v = el.dataset.v;
+  switch (a) {
+    case 'tab': S.tab = v; if (v === 'cal' || v === 'board') S.scrollToday = S.month === ym(todayStr()); window.scrollTo(0, 0); break;
+    case 'm-prev': S.month = mPrev(S.month); S.scrollToday = false; resetScroll(); break;
+    case 'm-next': S.month = mNext(S.month); S.scrollToday = false; resetScroll(); break;
+    case 'm-today': S.month = ym(todayStr()); S.scrollToday = true; break;
+    case 'filter': S.filter = v; break;
+    case 'new': if (S.role !== 'viewer') openBooking({ aptId: el.dataset.apt, d: el.dataset.d }); return;
+    case 'edit': if (S.role !== 'viewer') openBooking({ id: el.dataset.id }); return;
+    case 'p-prev': S.per = perShift(S.per, -1); break;
+    case 'p-next': S.per = perShift(S.per, 1); break;
+    case 'p-type': { const ms = perMonths(S.per), cur = ym(todayStr()); S.per = perFrom(v, ms.includes(cur) ? cur : ms[0]); break; }
+    case 'e-prev': S.expMonth = mPrev(S.expMonth); break;
+    case 'e-next': S.expMonth = mNext(S.expMonth); break;
+    case 'export': exportFin(el); return;
+    case 'exp-new': openExp(); return;
+    case 'exp-edit': openExp(el.dataset.id); return;
+    case 'apt-new': openApt(); return;
+    case 'apt-edit': openApt(el.dataset.id); return;
+    case 'host-new': openHost(); return;
+    case 'host-edit': openHost(el.dataset.id); return;
+    case 'settings': openSettings(); return;
+    case 'login': openLogin(); return;
+    case 'logout': doLogout(); return;
+    case 'pw': openPw(); return;
+    case 'clear-sample': clearSample(el); return;
+    case 'refresh': loadAll().then(() => toast('Đã tải lại')); return;
+    case 'retry': S.mode = 'loading'; schedule(); loadAll(); return;
+  }
+  schedule();
+});
+function resetScroll() { const w = $('#app .tl-wrap'); if (w) w.scrollLeft = 0; }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('#modal').hidden) { closeModal(); return; }
+  if (e.key === 'Enter' && MS && MS.type === 'login' && e.target.tagName === 'INPUT') { e.preventDefault(); MS.save(); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('tr[data-act]')) { e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'f-ci' || e.target.id === 'f-co') {
+    S.find[e.target.id === 'f-ci' ? 'ci' : 'co'] = e.target.value;
+    if (e.target.id === 'f-ci' && DRE.test(e.target.value) && !(S.find.co > e.target.value)) S.find.co = addDays(e.target.value, 1);
+    schedule();
+  }
+});
+$('#modal').addEventListener('click', e => {
+  if (e.target === $('#modal')) { closeModal(); return; }
+  const b = e.target.closest('[data-m]');
+  if (!b || !MS) return;
+  const m = b.dataset.m;
+  if (m === 'close') closeModal();
+  else if (m === 'save' && MS.save) MS.save();
+  else if (m === 'del' && MS.del) MS.del(b);
+  else if (m === 'addch') $('#chs').insertAdjacentHTML('beforeend', chRow({ name: '', fee: 0 }));
+  else if (m === 'rmch') b.closest('.chrow').remove();
+});
+const onModalInput = e => {
+  if (!MS) return;
+  if (e.target.classList && e.target.classList.contains('money') && e.type === 'input') {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 13);
+    e.target.value = d ? NF.format(+d) : '';
+  }
+  if (MS.recalc) MS.recalc(e);
+};
+$('#modal').addEventListener('input', onModalInput);
+$('#modal').addEventListener('change', e => { if (e.target.type === 'radio' || e.target.tagName === 'SELECT') onModalInput(e); });
+let rz = 0;
+addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const tr = $('#trend'); if (tr) drawTrend(tr); }, 150); });
+setInterval(() => { if (!document.hidden && !MS && S.mode === 'ok') loadAll(true); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !MS && S.mode === 'ok' && S.loadedAt && Date.now() - S.loadedAt > 30000) loadAll(true); });
+
+/* ---------- boot ---------- */
+if (!TOKEN) S.tab = 'board';
+render();
+loadAll();
+})();
+</script>
+</body>
+</html>
