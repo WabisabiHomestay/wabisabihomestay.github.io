@@ -24,7 +24,7 @@
   --shadow: 0 1px 2px rgba(19,33,30,.06), 0 12px 32px rgba(19,33,30,.14);
   --f-display: "Bricolage Grotesque", "Be Vietnam Pro", system-ui, sans-serif;
   --f-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --r: 10px; --namew: 196px; --dayw: 38px;
+  --r: 10px; --namew: 188px; --typew: 112px; --dayw: 38px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -104,13 +104,37 @@ h1, h2, h3, h4 { text-wrap: balance; }
 .strip b { color: var(--ink); font-weight: 600; }
 .hint { color: var(--muted); font-size: 12.5px; margin: 8px 2px 18px; }
 
-/* timeline (room rack) */
-.tl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
-.tl { min-width: calc(var(--namew) + var(--n) * var(--dayw)); }
-.tl-head, .tl-row { display: grid; grid-template-columns: var(--namew) repeat(var(--n), var(--dayw)); }
+/* timeline (room rack) — khung bảng: thanh chọn tháng ở trên, bảng cuộn bên trong, hàng ngày + cột căn/loại phòng cố định */
+.tl-card { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+/* thanh tháng + hàng ngày: dính ngay dưới thanh trên cùng khi cuộn trang */
+.tl-sticky { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--toph, 60px)); z-index: 8; background: var(--surface); border-radius: calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0; box-shadow: 0 1px 0 var(--line), 0 6px 10px -8px rgba(19,33,30,.18); }
+.tl-hs { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.tl-hs::-webkit-scrollbar { display: none; }
+.tl-cap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.tl-cap .nav { gap: 6px; }
+.tl-cap .strip { margin: 0 0 0 auto; }
+.strip.mob { display: none; }
+.msel { position: relative; display: inline-flex; align-items: center; }
+.msel select { appearance: none; -webkit-appearance: none; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); border-radius: 8px; padding: 4px 32px 4px 12px; font-family: var(--f-display); font-size: 17px; font-weight: 600; letter-spacing: -.01em; cursor: pointer; min-height: 34px; }
+.msel select:hover { border-color: var(--axis); }
+.msel svg { position: absolute; right: 10px; pointer-events: none; color: var(--ink-2); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tl-wrap { overflow-x: auto; overflow-y: hidden; border-radius: 0 0 calc(var(--r) - 1px) calc(var(--r) - 1px); }
+.tl { min-width: calc(var(--namew) + var(--typew) + var(--n) * var(--dayw)); }
+.tl-head, .tl-row { display: grid; grid-template-columns: var(--namew) var(--typew) repeat(var(--n), var(--dayw)); }
 .tl-row { grid-template-rows: 48px; border-top: 1px solid var(--line-2); }
-.tl-corner, .tl-name { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--line); min-width: 0; }
+.tl-wrap .tl-row:first-child { border-top: 0; }
+.tl-corner, .tl-name, .tl-type { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--line); min-width: 0; }
 .tl-corner { padding: 6px 12px; font-size: 12px; color: var(--muted); display: flex; align-items: flex-end; }
+.tl-corner.ty, .tl-type { left: var(--namew); }
+.tl-corner.ty { padding-inline: 10px; }
+.tl-type { grid-row: 1; grid-column: 2; padding: 4px 10px; display: flex; flex-direction: column; justify-content: center; text-align: left; }
+.tl-type b { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-type b.nil { color: var(--muted); font-weight: 500; }
+.tl-type small { color: var(--muted); font-size: 11px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button.tl-type { appearance: none; border: 0; border-right: 1px solid var(--line); margin: 0; font: inherit; color: inherit; cursor: pointer; }
+button.tl-type:hover { background: var(--surface-2); }
+.tl-head .s, .tl-type .s { display: none; }
 .tl-name { grid-row: 1; grid-column: 1; padding: 4px 12px; display: flex; flex-direction: column; justify-content: center; }
 .tl-name b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tl-name small { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -262,7 +286,17 @@ textarea.in { resize: vertical; }
 .toast.err { background: var(--neg); color: #fff; }
 
 @media (max-width: 640px) {
-  :root { --namew: 128px; --dayw: 34px; }
+  :root { --namew: 114px; --typew: 58px; --dayw: 34px; }
+  .tl-head .c, .tl-type .c, .tl-type small { display: none; }
+  .tl-head .s, .tl-type .s { display: inline; }
+  .tl-type, .tl-corner.ty { padding-inline: 8px; }
+  /* điện thoại: thanh trên cùng cuộn đi, chỉ giữ thanh tháng + hàng ngày để còn chỗ xem lịch */
+  .top { position: static; }
+  .tl-cap { padding: 8px; gap: 6px; }
+  .tl-cap .strip { display: none; }
+  .strip.mob { display: flex; }
+  .msel select { font-size: 16px; padding-right: 28px; }
+  .msel svg { right: 8px; }
   .nav h2 { min-width: 0; font-size: 18px; }
   .brand { font-size: 20px; }
   .kpi .v { font-size: 19px; }
@@ -318,6 +352,19 @@ const ST = {
   owner: { label: 'Khách chủ nhà', long: 'Khách của chủ nhà' },
 };
 const ST_ORDER = ['hold', 'deposit', 'paid', 'owner'];
+/** Loại phòng: [mã, tên đầy đủ (form), chữ trong cột bảng, chữ ngắn trên điện thoại] */
+const ROOMS = [
+  ['studio', 'Studio', 'Studio', 'Studio'],
+  ['1br', '1 phòng ngủ', '1 phòng ngủ', '1PN'],
+  ['1br1', '1 phòng ngủ + 1', '1PN + 1', '1PN+'],
+  ['2br', '2 phòng ngủ', '2 phòng ngủ', '2PN'],
+  ['2br1', '2 phòng ngủ + 1', '2PN + 1', '2PN+'],
+  ['3br', '3 phòng ngủ', '3 phòng ngủ', '3PN'],
+  ['4br', '4 phòng ngủ trở lên', '4+ phòng ngủ', '4PN+'],
+  ['villa', 'Villa / nhà nguyên căn', 'Villa', 'Villa'],
+];
+const ROOM = Object.fromEntries(ROOMS.map(([k, l, c, s]) => [k, { l, c, s }]));
+const roomOf = k => (Object.prototype.hasOwnProperty.call(ROOM, String(k)) ? ROOM[k] : null);
 const WD = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 const ROLE_LABEL = { admin: 'Quản lý', host: 'Chủ nhà', viewer: 'Chỉ xem' };
 const TABS = {
@@ -334,6 +381,7 @@ const I = {
   gear: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
   dl: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
   sync: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3M4 4v4h4M20 20v-4h-4"/></svg>',
+  dn: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
 };
 
 /* ---------- helpers ---------- */
@@ -599,19 +647,31 @@ function render() {
     html = topbar(r) + (tabs.length > 1 ? tabbar(tabs) : '') + view(r);
   }
   app.innerHTML = html;
-  const nw = app.querySelector('.tl-wrap');
-  if (nw) {
+  sizeVars();
+  const nw = app.querySelector('.tl-wrap'), hs = app.querySelector('.tl-hs');
+  if (nw && hs) {
+    // hàng ngày tháng (dính phía trên) và thân bảng luôn cuộn ngang cùng nhau
+    const link = (a, b) => a.addEventListener('scroll', () => { if (Math.abs(b.scrollLeft - a.scrollLeft) > 1) b.scrollLeft = a.scrollLeft; }, { passive: true });
+    link(nw, hs); link(hs, nw);
+    let x = keep != null ? keep : 0;
     if (S.scrollToday) {
-      const td = nw.querySelector('.tl-day.td');
-      const nameW = (nw.querySelector('.tl-corner') || {}).offsetWidth || 0;
-      nw.scrollLeft = td ? Math.max(0, td.offsetLeft - nameW - td.offsetWidth * 2) : 0;
+      const td = hs.querySelector('.tl-day.td');
+      // phần cố định bên trái = cột Căn hộ + cột Loại phòng
+      const stick = [...hs.querySelectorAll('.tl-corner')].reduce((w, el) => w + el.offsetWidth, 0);
+      x = td ? Math.max(0, td.getBoundingClientRect().left - hs.getBoundingClientRect().left - stick - td.offsetWidth * 2) : 0;
       S.scrollToday = false;
-    } else if (keep != null) nw.scrollLeft = keep;
+    }
+    nw.scrollLeft = x; hs.scrollLeft = nw.scrollLeft;
   }
   const tr = $('#trend');
   if (tr) drawTrend(tr);
 }
 
+/** Chiều cao thanh trên cùng: hàng ngày tháng dính ngay bên dưới thanh này khi cuộn trang. */
+function sizeVars() {
+  const top = $('#app .top');
+  if (top) document.documentElement.style.setProperty('--toph', (getComputedStyle(top).position === 'sticky' ? top.offsetHeight : 0) + 'px');
+}
 function topbar(r) {
   let right = '';
   if (r) {
@@ -649,21 +709,43 @@ const legend = () => `<div class="legend">${ST_ORDER.map(k => `<span><i class="s
 const isOff = (a, d) => !!a && ((DRE.test(a.start || '') && d < a.start) || (DRE.test(a.end || '') && d > a.end));
 const offWhy = (a, d) => (DRE.test(a.start || '') && d < a.start ? `Chưa thuê / chưa nhận vận hành (bắt đầu ${dLabel(a.start)}/${a.start.slice(0, 4)})` : `Đã hết hợp đồng (kết thúc ${dLabel(a.end)}/${a.end.slice(0, 4)})`);
 
-/* timeline: rows [{id,name,sub,bks:[{ci,co,st,guest,_id}]}] */
+/** Thanh chọn tháng gắn ngay trên bảng: ‹ [danh sách tháng] › Hôm nay, kèm số liệu nhanh (nếu có). */
+function monthBar(extra) {
+  const M = S.month, cur = ym(todayStr()), opts = [];
+  let m = M;
+  for (let i = 0; i < 12; i++) m = mPrev(m);
+  for (let i = 0; i < 25; i++) { opts.push(m); m = mNext(m); }
+  if (!opts.includes(cur)) opts.push(cur), opts.sort();
+  return `<div class="tl-cap"><div class="nav"><button class="btn icon" data-act="m-prev" aria-label="Tháng trước" title="Tháng trước">${I.l}</button>
+    <label class="msel"><span class="sr">Chọn tháng</span><select id="tl-month">${opts.map(o => `<option value="${o}"${o === M ? ' selected' : ''}>${mLabel(o)}</option>`).join('')}</select>${I.dn}</label>
+    <button class="btn icon" data-act="m-next" aria-label="Tháng sau" title="Tháng sau">${I.r}</button></div>
+    <button class="btn" data-act="m-today">Hôm nay</button>${extra || ''}</div>`;
+}
+/** Ô "Loại phòng" của một căn. Quản lý bấm vào để sửa thông tin căn. */
+function roomCell(r, edit) {
+  const rt = roomOf(r.room);
+  const tip = [rt ? rt.l : 'Chưa nhập loại phòng', r.detail].filter(Boolean).join(' · ') + (edit ? ' · bấm để sửa' : '');
+  const inner = (rt ? `<b><span class="c">${rt.c}</span><span class="s">${rt.s}</span></b>` : '<b class="nil">—</b>') + (r.detail ? `<small>${esc(r.detail)}</small>` : '');
+  return edit
+    ? `<button class="tl-type" data-act="apt-edit" data-id="${esc(r.id)}" title="${esc(tip)}" aria-label="Loại phòng ${esc(r.name)}: ${esc(tip)}">${inner}</button>`
+    : `<div class="tl-type" title="${esc(tip)}">${inner}</div>`;
+}
+/* timeline: rows [{id,name,sub,room,detail,bks:[{ci,co,st,guest,_id}]}] */
 function timeline(rows, opt) {
   const M = S.month, n = dim(M), first = mFirst(M), end = mFirst(mNext(M)), td = todayStr();
   const days = Array.from({ length: n }, (_, i) => addDays(first, i));
-  let h = `<div class="tl-wrap"><div class="tl" style="--n:${n}"><div class="tl-head"><div class="tl-corner">Căn hộ</div>`;
+  // Phần dính (tháng + hàng ngày) nằm riêng, cuộn ngang đồng bộ với thân bảng.
+  let h = `<div class="tl-card"><div class="tl-sticky">${monthBar(opt.cap)}<div class="tl-hs"><div class="tl" style="--n:${n}"><div class="tl-head"><div class="tl-corner">Căn hộ</div><div class="tl-corner ty"><span class="c">Loại phòng</span><span class="s">Loại</span></div>`;
   for (const d of days) { const w = wd(d); h += `<div class="tl-day${w === 0 || w === 6 ? ' we' : ''}${d === td ? ' td' : ''}">${WD[w]}<b>${+d.slice(8)}</b></div>`; }
-  h += '</div>';
+  h += `</div></div></div></div><div class="tl-wrap"><div class="tl" style="--n:${n}">`;
   for (const r of rows) {
-    h += `<div class="tl-row"><div class="tl-name"><b title="${esc(r.name)}">${esc(r.name)}</b>${r.sub ? `<small>${r.sub}</small>` : ''}</div>`;
+    h += `<div class="tl-row"><div class="tl-name"><b title="${esc(r.name)}">${esc(r.name)}</b>${r.sub ? `<small>${r.sub}</small>` : ''}</div>${roomCell(r, opt.aptEdit)}`;
     days.forEach((d, i) => {
       const w = wd(d), cls = `tl-cell${w === 0 || w === 6 ? ' we' : ''}${d === td ? ' td' : ''}`;
-      if (isOff(r, d)) { h += `<div class="${cls} off" style="grid-column:${i + 2}" title="${esc(offWhy(r, d))}"></div>`; return; }
+      if (isOff(r, d)) { h += `<div class="${cls} off" style="grid-column:${i + 3}" title="${esc(offWhy(r, d))}"></div>`; return; }
       h += opt.editable
-        ? `<button class="${cls}" style="grid-column:${i + 2}" data-act="new" data-apt="${esc(r.id)}" data-d="${d}" aria-label="Thêm booking ${esc(r.name)} ngày ${dLabel(d)}"></button>`
-        : `<div class="${cls}" style="grid-column:${i + 2}"></div>`;
+        ? `<button class="${cls}" style="grid-column:${i + 3}" data-act="new" data-apt="${esc(r.id)}" data-d="${d}" aria-label="Thêm booking ${esc(r.name)} ngày ${dLabel(d)}"></button>`
+        : `<div class="${cls}" style="grid-column:${i + 3}"></div>`;
     });
     for (const b of r.bks) {
       if (!(b.ci < end && b.co > first)) continue;
@@ -675,7 +757,7 @@ function timeline(rows, opt) {
       const label = opt.names ? (b.guest || ST[b.st].label) : ST[b.st].label;
       const title = `${ST[b.st].long} · ${nights} đêm: đêm ${dLabel(b.ci)} → đêm ${dLabel(lastNight)}, trả phòng ${dLabel(b.co)}${opt.names && b.guest ? ' · ' + b.guest : ''}${b.lock ? ' · Bạn chỉ xem được' : ''}`;
       const cls = `tl-bar st-${b.st}${cutL ? ' cl' : ''}${cutR ? ' cr' : ''}${b.lock ? ' lk' : ''}`;
-      const st = `grid-column:${s + 2}/${e + 3}`;
+      const st = `grid-column:${s + 3}/${e + 4}`;
       const inner = `<span class="nn" aria-label="${nights} đêm">${nights}</span>${b.lock ? `<span class="lki" aria-label="Chỉ xem">${I.lock}</span>` : ''}<span class="lb">${esc(label)}</span>`;
       h += opt.editable
         ? `<button class="${cls}" style="${st}" data-act="edit" data-id="${esc(b._id)}" title="${esc(title)}">${inner}</button>`
@@ -683,7 +765,7 @@ function timeline(rows, opt) {
     }
     h += '</div>';
   }
-  return h + '</div></div>';
+  return h + '</div></div></div>';
 }
 
 const hostName = h => (h ? esc((S.hosts[h] && S.hosts[h].label) || h) : 'chưa gán');
@@ -696,20 +778,21 @@ function viewCal(r) {
   if (admin) apts = apts.filter(a => a.active !== false);
   if (admin && S.filter !== 'all') apts = apts.filter(a => a.kind === S.filter);
   const bks = allBk();
-  const rows = apts.map(a => ({ id: a._id, name: a.name, start: a.start, end: a.end, sub: admin ? aptSub(a) : esc(a.address || ''), bks: bks.filter(b => b.aptId === a._id) }));
+  const rows = apts.map(a => ({ id: a._id, name: a.name, start: a.start, end: a.end, room: a.room, detail: a.detail, sub: admin ? aptSub(a) : esc(a.address || ''), bks: bks.filter(b => b.aptId === a._id) }));
   const chips = admin ? `<div class="chips">${[['all', 'Tất cả'], ['leased', 'Căn thuê lại'], ['managed', 'Căn chủ nhà']].map(([k, l]) => `<button class="chip" aria-pressed="${S.filter === k}" data-act="filter" data-v="${k}">${l}</button>`).join('')}</div>` : '';
-  let out = `<div class="toolbar">${monthNav('m', S.month)}<button class="btn" data-act="m-today">Hôm nay</button>${chips}<span class="spacer"></span>${apts.length ? `<button class="btn primary" data-act="new">${I.plus}Booking</button>` : ''}</div>`;
+  let out = `<div class="toolbar">${chips}${apts.length ? legend() : ''}<span class="spacer"></span>${apts.length ? `<button class="btn primary" data-act="new">${I.plus}Booking</button>` : ''}</div>`;
   if (!apts.length) {
     if (admin) return out + `<div class="card empty"><h3>Chưa có căn hộ nào</h3><p>Thêm căn bạn thuê lại hoặc căn vận hành cho chủ nhà, rồi bấm vào ngày để tạo booking. Muốn xem thử trước: mở Google Sheet → menu Wabisabi Homestay → Tạo dữ liệu mẫu.</p><button class="btn primary" data-act="apt-new">${I.plus}Thêm căn hộ</button></div>`;
     return out + `<div class="card empty"><h3>Chưa có căn nào được gán cho bạn</h3><p>Người quản lý sẽ gán căn hộ của bạn vào tài khoản này.</p></div>`;
   }
-  out += `<div class="toolbar">${legend()}</div>`;
+  let cap = '';
   if (admin) {
     const A = summarize([S.month], bks).tot;
-    out += `<div class="strip"><span>Công suất <b>${pct(A.occ)}</b></span><span>Đêm đã bán <b>${A.sold}</b></span><span>Đêm đang giữ <b>${A.held}</b></span><span>Doanh thu phòng <b>${money(A.gross)} ₫</b></span></div>`;
+    cap = `<div class="strip"><span>Công suất <b>${pct(A.occ)}</b></span><span>Đêm đã bán <b>${A.sold}</b></span><span>Đêm đang giữ <b>${A.held}</b></span><span>Doanh thu phòng <b>${money(A.gross)} ₫</b></span></div>`;
   }
-  out += timeline(rows, { editable: true, names: true });
-  out += `<p class="hint">${NIGHT_HINT} Bấm vào ô trống để thêm booking, bấm vào thanh màu để sửa.${admin ? '' : ' Bạn chỉ thêm được booking Khách chủ nhà. Booking có biểu tượng ổ khóa do quản lý phụ trách: bạn chỉ xem ngày và trạng thái, tên khách được ẩn.'}</p>`;
+  if (cap) out += cap.replace('class="strip"', 'class="strip mob"');
+  out += timeline(rows, { editable: true, names: true, aptEdit: admin, cap });
+  out += `<p class="hint">${NIGHT_HINT} Bấm vào ô trống để thêm booking, bấm vào thanh màu để sửa.${admin ? ' Bấm vào ô Loại phòng để sửa thông tin căn.' : ' Bạn chỉ thêm được booking Khách chủ nhà. Booking có biểu tượng ổ khóa do quản lý phụ trách: bạn chỉ xem ngày và trạng thái, tên khách được ẩn.'}</p>`;
   out += upcoming(rows);
   return out;
 }
@@ -729,7 +812,7 @@ function boardRows() {
   const apts = (S.board && S.board.apts) || [];
   return apts.map(d => {
     const ranges = Array.isArray(d.ranges) ? d.ranges.filter(x => Array.isArray(x) && DRE.test(x[0]) && DRE.test(x[1]) && x[1] > x[0]) : [];
-    return { key: String(d.id), name: String(d.name || 'Căn hộ'), order: +d.order || 0, start: d.start || '', end: d.end || '', ranges: ranges.map(x => ({ ci: x[0], co: x[1], st: ST[x[2]] ? x[2] : 'hold', _id: '' })) };
+    return { key: String(d.id), name: String(d.name || 'Căn hộ'), order: +d.order || 0, start: d.start || '', end: d.end || '', room: roomOf(d.room) ? d.room : '', detail: String(d.detail || '').slice(0, 80), ranges: ranges.map(x => ({ ci: x[0], co: x[1], st: ST[x[2]] ? x[2] : 'hold', _id: '' })) };
   }).sort(byOrder);
 }
 function viewBoard(r) {
@@ -737,7 +820,7 @@ function viewBoard(r) {
   const busy = rr => rr.ranges.find(x => x.ci <= t && t < x.co);
   const open = rows.filter(x => !isOff(x, t));
   const free = open.filter(x => !busy(x)).length;
-  let out = `<div class="toolbar">${monthNav('m', S.month)}<button class="btn" data-act="m-today">Hôm nay</button><span class="spacer"></span>${legend()}</div>`;
+  let out = `<div class="toolbar">${legend()}</div>`;
   if (r === 'admin') out += `<div class="note" style="margin-bottom:14px">Ai có link app đều xem được trang này mà <b>không cần đăng nhập</b>: chỉ có tên căn và màu trạng thái, không có tên khách, giá hay ghi chú, và không sửa được.</div>`;
   if (!rows.length) return out + `<div class="card empty"><h3>Chưa có căn hộ nào trên bảng</h3><p>Lịch các căn sẽ hiện ở đây khi người quản lý thêm căn và booking.</p></div>`;
   out += `<div class="board-sum"><div class="kpi"><div class="l">Tối nay (${dLabel(t)})</div><div class="v">${free}<small> / ${open.length} căn trống</small></div></div>`;
@@ -747,10 +830,10 @@ function viewBoard(r) {
     const outside = x => isOff(x, f.ci) || isOff(x, addDays(f.co, -1));
     const res = rows.map(x => ({ x, off: outside(x), ok: !outside(x) && !x.ranges.some(b => b.ci < f.co && b.co > f.ci) }));
     const nOk = res.filter(z => z.ok).length;
-    out += `<div class="free">${res.map(z => `<span class="${z.ok ? 'ok' : ''}">${esc(z.x.name)}${z.ok ? '' : z.off ? ' · chưa nhận khách' : ' · đã có lịch'}</span>`).join('')}</div><div class="d" style="margin-top:6px">${nOk} căn trống ${diff(f.ci, f.co)} đêm từ ${dLabel(f.ci)}</div>`;
+    out += `<div class="free">${res.map(z => `<span class="${z.ok ? 'ok' : ''}">${esc(z.x.name)}${roomOf(z.x.room) ? ' · ' + roomOf(z.x.room).s : ''}${z.ok ? '' : z.off ? ' · chưa nhận khách' : ' · đã có lịch'}</span>`).join('')}</div><div class="d" style="margin-top:6px">${nOk} căn trống ${diff(f.ci, f.co)} đêm từ ${dLabel(f.ci)}</div>`;
   } else if (f.ci || f.co) out += `<div class="d" style="margin-top:6px">Chọn ngày trả phòng sau ngày nhận phòng.</div>`;
   out += `</div></div>`;
-  out += timeline(rows.map(x => ({ id: x.key, name: x.name, start: x.start, end: x.end, sub: isOff(x, t) ? 'Tối nay: chưa nhận khách' : busy(x) ? `Tối nay: ${ST[busy(x).st].label.toLowerCase()}` : 'Tối nay: trống', bks: x.ranges })), { editable: false, names: false });
+  out += timeline(rows.map(x => ({ id: x.key, name: x.name, start: x.start, end: x.end, room: x.room, detail: x.detail, sub: isOff(x, t) ? 'Tối nay: chưa nhận khách' : busy(x) ? `Tối nay: ${ST[busy(x).st].label.toLowerCase()}` : 'Tối nay: trống', bks: x.ranges })), { editable: false, names: false });
   out += `<p class="hint">${NIGHT_HINT} ${S.loadedAt ? 'Cập nhật lúc ' + fmtTime(S.loadedAt.toISOString()) + '. ' : ''}Trang tự làm mới mỗi phút.</p>`;
   return out;
 }
@@ -884,8 +967,9 @@ function viewApts() {
   let out = `<div class="toolbar"><span class="spacer"></span><button class="btn" data-act="host-new">${I.user}Thêm chủ nhà</button><button class="btn primary" data-act="apt-new">${I.plus}Thêm căn hộ</button></div>`;
   out += `<div class="card"><h3>Căn hộ <small>${apts.length} căn · giá chỉ bạn thấy</small></h3>`;
   if (!apts.length) out += '<p class="hint">Chưa có căn hộ nào.</p>';
-  else out += `<div class="tscroll"><table class="t"><thead><tr><th>Căn hộ</th><th>Loại</th><th>Chủ nhà</th><th class="n">Giá vốn</th><th class="n">Giá bán gợi ý/đêm</th><th class="n">CP cố định/tháng</th><th>Trạng thái</th></tr></thead><tbody>
+  else out += `<div class="tscroll"><table class="t"><thead><tr><th>Căn hộ</th><th>Loại phòng</th><th>Loại</th><th>Chủ nhà</th><th class="n">Giá vốn</th><th class="n">Giá bán gợi ý/đêm</th><th class="n">CP cố định/tháng</th><th>Trạng thái</th></tr></thead><tbody>
     ${apts.map(a => `<tr class="click${a.sample ? ' muted' : ''}" data-act="apt-edit" data-id="${esc(a._id)}" tabindex="0"><td class="name">${esc(a.name)}${a.code ? ` <small>${esc(a.code)}</small>` : ''}</td>
+      <td class="name" title="${esc([roomOf(a.room) ? roomOf(a.room).l : '', a.detail].filter(Boolean).join(' · '))}">${roomOf(a.room) ? roomOf(a.room).c : '<small>chưa nhập</small>'}${a.detail ? ` <small>${esc(a.detail)}</small>` : ''}</td>
       <td>${a.kind === 'managed' ? '<span class="tag">vận hành cho chủ nhà</span>' : '<span class="tag l">thuê lại</span>'}</td>
       <td>${a.kind === 'managed' ? hostName(a.hostId) : '–'}</td>
       <td class="n">${a.kind === 'managed' ? money(a.onight) + ' /đêm' : money(a.rent) + ' /tháng'}</td>
@@ -1097,6 +1181,8 @@ function openApt(id) {
     <label class="f full">Tên căn hộ<input class="in" id="a-name" maxlength="80" value="${esc(a.name || '')}" placeholder="VD: Studio Bến Thành 12A"></label>
     <label class="f">Mã căn<input class="in" id="a-code" maxlength="30" value="${esc(a.code || '')}" placeholder="VD: BT-1203"></label>
     <label class="f">Địa chỉ / khu vực<input class="in" id="a-addr" maxlength="160" value="${esc(a.address || '')}"></label>
+    <label class="f">Loại phòng<select class="in" id="a-room"><option value="">— Chọn loại phòng —</option>${ROOMS.map(([k, l]) => `<option value="${k}"${k === a.room ? ' selected' : ''}>${l}</option>`).join('')}</select><small>Hiện ở cột Loại phòng trên lịch</small></label>
+    <label class="f">Chi tiết phòng (tùy chọn)<input class="in" id="a-detail" maxlength="80" value="${esc(a.detail || '')}" placeholder="VD: 2 WC · view biển · tối đa 4 khách"><small>Hiện cả trên Bảng chung, đừng ghi thông tin riêng</small></label>
     <div class="f full"><span>Loại căn</span><div class="seg two"><label><input type="radio" name="a-kind" value="leased"${kind === 'leased' ? ' checked' : ''}>Tôi thuê lại để vận hành</label><label><input type="radio" name="a-kind" value="managed"${kind === 'managed' ? ' checked' : ''}>Vận hành cho chủ nhà</label></div></div>
     <div class="finbox"><h4>${I.lock}Giá & chi phí · chỉ bạn thấy</h4>
       <label class="f" data-k="leased">Tiền thuê nhà/tháng (₫)<input class="in money" inputmode="numeric" id="a-rent" value="${a.rent ? money(a.rent) : ''}"></label>
@@ -1123,7 +1209,7 @@ function aptSave() {
   if (!name) return showErr('Nhập tên căn hộ.');
   const kind = radio('a-kind') === 'managed' ? 'managed' : 'leased';
   const data = {
-    id: MS.a._id || '', name, code: val('a-code').trim(), address: val('a-addr').trim(), kind,
+    id: MS.a._id || '', name, code: val('a-code').trim(), room: val('a-room'), detail: val('a-detail').trim(), address: val('a-addr').trim(), kind,
     hostId: kind === 'managed' ? val('a-host') : '', rent: pm(val('a-rent')), onight: pm(val('a-onight')),
     snight: pm(val('a-snight')), fixed: pm(val('a-fixed')), start: val('a-start'), end: val('a-end'),
     order: +val('a-order') || 0, active: $('#a-active').checked,
@@ -1275,13 +1361,19 @@ document.addEventListener('click', e => {
   }
   schedule();
 });
-function resetScroll() { const w = $('#app .tl-wrap'); if (w) w.scrollLeft = 0; }
+function resetScroll() { document.querySelectorAll('#app .tl-wrap, #app .tl-hs').forEach(w => { w.scrollLeft = 0; }); }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !$('#modal').hidden) { closeModal(); return; }
   if (e.key === 'Enter' && MS && MS.type === 'login' && e.target.tagName === 'INPUT') { e.preventDefault(); MS.save(); return; }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('tr[data-act]')) { e.preventDefault(); e.target.click(); }
 });
 document.addEventListener('change', e => {
+  if (e.target.id === 'tl-month' && /^\d{4}-\d{2}$/.test(e.target.value)) {
+    S.month = e.target.value; S.scrollToday = S.month === ym(todayStr());
+    if (!S.scrollToday) resetScroll();
+    schedule();
+    return;
+  }
   if (e.target.id === 'f-ci' || e.target.id === 'f-co') {
     S.find[e.target.id === 'f-ci' ? 'ci' : 'co'] = e.target.value;
     if (e.target.id === 'f-ci' && DRE.test(e.target.value) && !(S.find.co > e.target.value)) S.find.co = addDays(e.target.value, 1);
@@ -1310,8 +1402,10 @@ const onModalInput = e => {
 $('#modal').addEventListener('input', onModalInput);
 $('#modal').addEventListener('change', e => { if (e.target.type === 'radio' || e.target.tagName === 'SELECT') onModalInput(e); });
 let rz = 0;
-addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const tr = $('#trend'); if (tr) drawTrend(tr); }, 150); });
-setInterval(() => { if (!document.hidden && !MS && S.mode === 'ok') loadAll(true); }, 60000);
+addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { sizeVars(); const tr = $('#trend'); if (tr) drawTrend(tr); }, 150); });
+/** Đang chọn tháng / chọn ngày trên trang thì chưa tự làm mới, tránh đóng mất danh sách đang mở. */
+const typing = () => { const a = document.activeElement; return !!(a && a.closest && a.closest('#app select, #app input')); };
+setInterval(() => { if (!document.hidden && !MS && S.mode === 'ok' && !typing()) loadAll(true); }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !MS && S.mode === 'ok' && S.loadedAt && Date.now() - S.loadedAt > 30000) loadAll(true); });
 
 /* ---------- boot ---------- */
